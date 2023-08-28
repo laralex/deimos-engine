@@ -1,0 +1,42 @@
+#include "dei/prelude.hpp"
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <iostream>
+
+mat4 camera(f32 Translate, vec2 const& Rotate)
+{
+   mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.f);
+   mat4 View = glm::translate(mat4(1.0f), vec3(0.0f, 0.0f, -Translate));
+   View = glm::rotate(View, Rotate.y, vec3(-1.0f, 0.0f, 0.0f));
+   View = glm::rotate(View, Rotate.x, vec3(0.0f, 1.0f, 0.0f));
+   mat4 Model = glm::scale(mat4(1.0f), vec3(0.5f));
+   return Projection * View * Model;
+}
+
+int main() {
+    glfwInit();
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+    std::cout << extensionCount << " extensions supported\n";
+
+    mat4 test = camera(-5.0f, vec2{0.0f, 0.0f});
+
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+
+    return 0;
+}
