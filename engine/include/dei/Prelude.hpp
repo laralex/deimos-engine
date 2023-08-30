@@ -1,7 +1,10 @@
+#pragma once
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/fwd.hpp>
 
+using b8 = bool;
 using u8  = std::uint8_t;
 using u16 = std::uint16_t;
 using u32 = std::uint32_t;

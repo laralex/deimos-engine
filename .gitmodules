@@ -1,0 +1,4 @@
+[submodule "vendor/cr"]
+	path = vendor/cr
+	url = https://github.com/fungos/cr.git
+	branch = master
