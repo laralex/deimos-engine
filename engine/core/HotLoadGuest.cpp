@@ -3,40 +3,40 @@
 #include <cr.h>
 
 #include <iostream>
-#include <dlfcn.h>
 #include <vulkan/vulkan.hpp>
+// #include <dlfcn.h>
 
-class EngineInstance {
-public: 
-    typedef auto (*dei_camera)(f32 Translation, vec2 const& Rotation) -> mat4;
-    static dei_camera camera;
+// class EngineInstance {
+// public: 
+//     typedef auto (*dei_camera)(f32 Translation, vec2 const& Rotation) -> mat4;
+//     static dei_camera camera;
 
-    static void Open() {
-        _LibraryHandle = dlopen("./build/libdei.so", RTLD_LAZY);
-        if (!_LibraryHandle) {
-            fputs (dlerror(), stderr);
-            exit(1);
-        }
+//     static void Open() {
+//         _LibraryHandle = dlopen("./build/libdei.so", RTLD_LAZY);
+//         if (!_LibraryHandle) {
+//             fputs (dlerror(), stderr);
+//             exit(1);
+//         }
 
-        camera = (dei_camera)dlsym(_LibraryHandle, "camera");
+//         camera = (dei_camera)dlsym(_LibraryHandle, "camera");
 
-        char* error;
-        if ((error = dlerror()) != NULL)  {
-            fputs(error, stderr);
-            exit(1);
-        }
-    }
+//         char* error;
+//         if ((error = dlerror()) != NULL)  {
+//             fputs(error, stderr);
+//             exit(1);
+//         }
+//     }
 
-    static void Close() {
-        dlclose(_LibraryHandle);
-    }
+//     static void Close() {
+//         dlclose(_LibraryHandle);
+//     }
 
-private:
-    static void* _LibraryHandle;
-};
+// private:
+//     static void* _LibraryHandle;
+// };
 
-void* EngineInstance::_LibraryHandle{nullptr};
-EngineInstance::dei_camera EngineInstance::camera{nullptr};
+// void* EngineInstance::_LibraryHandle{nullptr};
+// EngineInstance::dei_camera EngineInstance::camera{nullptr};
 
 struct HotReloadState {
     u32 DrawCounter{0};
@@ -45,42 +45,38 @@ struct HotReloadState {
 static HotReloadState* state;
 
 int OnLoad(cr_plugin *ctx) {
-    std::cout << "app::OnLoad() v" << ctx->version << " e" << ctx->failure << '\n';
+    std::cout << "dei::OnLoad() v" << ctx->version << " e" << ctx->failure << '\n';
 
     state = reinterpret_cast<HotReloadState*>(ctx->userdata);
-
-    //EngineInstance::Open();
 
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
     std::cout << extensionCount << " extensions supported\n";
 
-    mat4 test = EngineInstance::camera(-5.0f, vec2{0.0f, 0.0f});
+    mat4 test = dei::camera(-5.0f, vec2{0.0f, 0.0f});
     std::cout << test[0][0] << ' ' << test[0][1] << ' ' << test[0][2] << ' ' << test[0][3] << '\n';
     std::cout << test[1][0] << ' ' << test[1][1] << ' ' << test[1][2] << ' ' << test[1][3] << '\n';
     std::cout << test[2][0] << ' ' << test[2][1] << ' ' << test[2][2] << ' ' << test[2][3] << '\n';
     std::cout << test[3][0] << ' ' << test[3][1] << ' ' << test[3][2] << ' ' << test[3][3] << '\n';
-
-    // EngineInstance::Close();
 
     return 0;
 }
 
 int OnUpdate(cr_plugin *ctx) {
     if (state->DrawCounter++ % 50000 == 0) {
-        std::cout << "app::OnUpdate() v" << ctx->version << " f=" << state->DrawCounter << '\n';
+        std::cout << "dei::OnUpdate() v" << ctx->version << " f=" << state->DrawCounter << '\n';
     }
     return 0;
 }
 
 int OnUnload(cr_plugin *ctx) {
-    std::cout << "app::OnUnload() v" << ctx->version << " e" << ctx->failure << '\n';
+    std::cout << "dei::OnUnload() v" << ctx->version << " e" << ctx->failure << '\n';
     return 0;
 }
 
 int OnClose(cr_plugin *ctx) {
-    std::cout << "app::OnClose() v" << ctx->version << '\n';
+    std::cout << "dei::OnClose() v" << ctx->version << '\n';
     return 0;
 }
 

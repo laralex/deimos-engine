@@ -1,40 +1,47 @@
 BUILD_DIR = ./build
 
+ENGINE_BASENAME ?= dei
+ENGINE_CORE_OUTNAME ?= lib$(ENGINE_BASENAME).so
+ENGINE_CORE_SRC_ROOT ?= ./engine/core
+ENGINE_PIL_OUTNAME ?= lib$(ENGINE_BASENAME)Platform.so
+ENGINE_PIL_SRC_ROOT ?= ./engine/platform
+EDITOR_OUTNAME ?= Editor_DevelEngine.exe
+
 CFLAGS = $(if $(DEBUG),-O0 -g, -O2) -std=c++17
 
-LDFLAGS_APP = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi #build/libdei.so -Wl,-rpath,libdei.so
-INCLUDES_APP = -I./vendor/glm -I./vendor/cr -I./engine/include
+LDFLAGS_EDITOR = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi -L$(BUILD_DIR)/$(ENGINE_PIL_OUTNAME)
+INCLUDES_EDITOR = -I./vendor/glm -I./vendor/cr -I./engine/platform/include
 
 LDFLAGS_ENGINE = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
-INCLUDES_ENGINE = -I./vendor/glm -I./vendor/cr -I./engine/include
+INCLUDES_ENGINE = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PIL_SRC_ROOT)/include -I$(ENGINE_CORE_SRC_ROOT)/include
 
-$(BUILD_DIR)/HotLoader.exe: hotload/Main.cpp
-	clang++ $(CFLAGS) -o $@ $^ $(LDFLAGS_APP) $(INCLUDES_APP)
+$(BUILD_DIR)/$(EDITOR_OUTNAME): $(BUILD_DIR)/$(ENGINE_PIL_OUTNAME) editor/EngineHotLoadHost.cpp
+	clang++ $(CFLAGS) -o $@ $^ $(LDFLAGS_EDITOR) $(INCLUDES_EDITOR)
 
-$(BUILD_DIR)/libdeiapp.so: app/HotLoadMain.cpp
-	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_APP) $(INCLUDES_APP)
+ENGINE_PIL_SRC := $(ENGINE_PIL_SRC_ROOT)/Util.cpp
+ENGINE_PIL_SRC += $(ENGINE_PIL_SRC_ROOT)/Window.cpp
+$(BUILD_DIR)/$(ENGINE_PIL_OUTNAME): $(ENGINE_PIL_SRC)
+	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) -I$(ENGINE_PIL_SRC_ROOT)/include
 
-$(BUILD_DIR)/libdei.so: engine/Camera.cpp engine/HotLoadMain.cpp
+ENGINE_CORE_SRC := $(ENGINE_CORE_SRC_ROOT)/Camera.cpp
+ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/HotLoadGuest.cpp
+ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/DevelApp.cpp
+$(BUILD_DIR)/$(ENGINE_CORE_OUTNAME): $(ENGINE_CORE_SRC)
 	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) $(INCLUDES_ENGINE)
 
-
-.PHONY: app
-app: $(BUILD_DIR) $(BUILD_DIR)/libdei.so
-	$(MAKE) --always-make $(BUILD_DIR)/libdeiapp.so
-
 .PHONY: dei
-dei: $(BUILD_DIR) $(BUILD_DIR)/libdeiapp.so
-	$(MAKE) --always-make $(BUILD_DIR)/libdei.so
+dei: $(BUILD_DIR)
+	$(MAKE) --always-make $(BUILD_DIR)/$(ENGINE_CORE_OUTNAME)
 
 .PHONY: run
-run: $(BUILD_DIR) $(BUILD_DIR)/libdei.so $(BUILD_DIR)/libdeiapp.so $(BUILD_DIR)/HotLoader.exe
-	$(BUILD_DIR)/HotLoader.exe $(shell pwd)/$(BUILD_DIR) dei deiapp
+run: $(BUILD_DIR) $(BUILD_DIR)/$(ENGINE_PIL_OUTNAME) $(BUILD_DIR)/$(ENGINE_CORE_OUTNAME) $(BUILD_DIR)/$(EDITOR_OUTNAME)
+	$(BUILD_DIR)/$(EDITOR_OUTNAME) $(shell pwd)/$(BUILD_DIR) $(ENGINE_BASENAME)
 
 .PHONY: rm
 rm:
-	rm -rf $(BUILD_DIR)/libdei*.so \
-			 $(BUILD_DIR)/libdeiapp*.so \
-			 $(BUILD_DIR)/HotLoader.exe
+	rm -rf $(BUILD_DIR)/$(subst .,*.,$(ENGINE_CORE_OUTNAME)) \
+			 $(BUILD_DIR)/$(subst .,*.,$(ENGINE_PIL_OUTNAME)) \
+			 $(BUILD_DIR)/$(subst .,*.,$(EDITOR_OUTNAME))
 
 
 .PHONY: install_linux
