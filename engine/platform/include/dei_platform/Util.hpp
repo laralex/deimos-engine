@@ -4,6 +4,6 @@
 
 namespace dei::platform {
 
-std::string MakeLibraryFilepath(const char* directoryPath, const char* basename);
+auto MakeLibraryFilepath(const char* directoryPath, const char* basename) -> std::string;
 
 }

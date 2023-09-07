@@ -42,45 +42,46 @@ struct HotReloadState {
     u32 DrawCounter{0};
 };
 
-static HotReloadState* state;
+static HotReloadState* state{nullptr};
 
-int OnLoad(cr_plugin *ctx) {
+auto OnLoad(cr_plugin *ctx) -> int {
     std::cout << "dei::OnLoad() v" << ctx->version << " e" << ctx->failure << '\n';
 
     state = reinterpret_cast<HotReloadState*>(ctx->userdata);
 
-    uint32_t extensionCount = 0;
+    auto extensionCount = uint32_t{0};
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
     std::cout << extensionCount << " extensions supported\n";
 
-    mat4 test = dei::camera(-5.0f, vec2{0.0f, 0.0f});
-    std::cout << test[0][0] << ' ' << test[0][1] << ' ' << test[0][2] << ' ' << test[0][3] << '\n';
-    std::cout << test[1][0] << ' ' << test[1][1] << ' ' << test[1][2] << ' ' << test[1][3] << '\n';
-    std::cout << test[2][0] << ' ' << test[2][1] << ' ' << test[2][2] << ' ' << test[2][3] << '\n';
-    std::cout << test[3][0] << ' ' << test[3][1] << ' ' << test[3][2] << ' ' << test[3][3] << '\n';
+    auto c = dei::MakeCamera(-5.0f, vec2{0.0f, 0.0f});
+    std::cout << c[0][0] << ' ' << c[0][1] << ' ' << c[0][2] << ' ' << c[0][3] << '\n';
+    std::cout << c[1][0] << ' ' << c[1][1] << ' ' << c[1][2] << ' ' << c[1][3] << '\n';
+    std::cout << c[2][0] << ' ' << c[2][1] << ' ' << c[2][2] << ' ' << c[2][3] << '\n';
+    std::cout << c[3][0] << ' ' << c[3][1] << ' ' << c[3][2] << ' ' << c[3][3] << '\n';
 
     return 0;
 }
 
-int OnUpdate(cr_plugin *ctx) {
+auto OnUpdate(cr_plugin *ctx) -> int {
     if (state->DrawCounter++ % 50000 == 0) {
         std::cout << "dei::OnUpdate() v" << ctx->version << " f=" << state->DrawCounter << '\n';
     }
     return 0;
 }
 
-int OnUnload(cr_plugin *ctx) {
+auto OnUnload(cr_plugin *ctx) -> int {
     std::cout << "dei::OnUnload() v" << ctx->version << " e" << ctx->failure << '\n';
     return 0;
 }
 
-int OnClose(cr_plugin *ctx) {
+auto OnClose(cr_plugin *ctx) -> int {
     std::cout << "dei::OnClose() v" << ctx->version << '\n';
     return 0;
 }
 
-CR_EXPORT int cr_main(cr_plugin *ctx, cr_op operation) {
+CR_EXPORT
+auto cr_main(cr_plugin *ctx, cr_op operation) -> int {
     assert(ctx);
     switch (operation) {
         case CR_STEP:   return OnUpdate(ctx);

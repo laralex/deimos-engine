@@ -16,30 +16,32 @@ struct EngineState {
 // 2: engine library basename (e.g. dei)
 // 3: frequency of hot reload (in draw calls)
 auto main(int argc, char *argv[]) -> int {
-    if (false == dei::platform::CreateWindow(800, 600, "Vulkan window")) {
+    // parse args
+    assert(argc >= 3);
+    auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 100000);
+
+    // make window
+    auto windowSystem = dei::platform::CreateWindowSystem();
+    auto window = dei::platform::CreateWindow({800, 600, "Vulkan window"});
+    if (window == nullptr) {
         exit(1);
     }
 
-    // the host application should initalize a plugin with a context, a plugin
+    // set up hot reloading
     auto engineHotReloader = cr_plugin{};
-    auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 100000);
-
-    assert(argc >= 3);
-
     auto engineLibPath = dei::platform::MakeLibraryFilepath(argv[1], argv[2]);
     assert(cr_plugin_open(engineHotReloader, engineLibPath.c_str())); // the full path to library
-    printf("Hot-loadable library: %s\n", engineLibPath.c_str());
     auto engineState = EngineState{};
     engineHotReloader.userdata = static_cast<void*>(&engineState);
+    printf("Hot-loadable library: %s\n", engineLibPath.c_str());
 
+    // app loop
     auto windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
-
     do {
-        dei::platform::PollWindowEvents();
-        windowClosing = dei::platform::IsWindowClosing();
-        auto doReloadCheck = (engineState.DrawCounter % hotReloadFrequency) == 0;
+        dei::platform::PollWindowEvents(window);
 
         {
+            auto doReloadCheck = (engineState.DrawCounter % hotReloadFrequency) == 0;
             auto engineAnswer = cr_plugin_update(engineHotReloader, doReloadCheck);
             switch (engineAnswer) {
                 case 0: break;
@@ -49,12 +51,13 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
+        windowClosing = dei::platform::IsWindowClosing(window);
     } while(!(windowClosing || engineClosing || hotReloadCrashing));
 
     printf("windowClose=%d engineClose=%d hotReloadCrash=%d\n", windowClosing, engineClosing, hotReloadCrashing);
 
+    // tear down hot reloading
     cr_plugin_close(engineHotReloader);
 
-    dei::platform::DestroyWindow();
     return 0;
 }

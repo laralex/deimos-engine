@@ -1,3 +1,3 @@
 #pragma once
 
-void StartApplication();
+auto StartApplication() -> void;

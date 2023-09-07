@@ -3,6 +3,6 @@
 
 #include "DevelApp.hpp"
 
-void StartApplication() {
+auto StartApplication() -> void {
    return;
 }

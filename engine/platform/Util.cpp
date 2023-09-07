@@ -5,7 +5,7 @@
 
 namespace dei::platform {
 
-std::string MakeLibraryFilepath(const char* directoryPath, const char* basename) {
+auto MakeLibraryFilepath(const char* directoryPath, const char* basename) -> std::string {
     std::stringstream ss;
     ss << directoryPath << '/';
 #if defined(DEI_WINDOWS)

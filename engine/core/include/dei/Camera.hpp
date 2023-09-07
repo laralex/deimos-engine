@@ -5,6 +5,7 @@
 
 namespace dei {
 
-extern "C" mat4 camera(f32 Translate, vec2 const& Rotate);
+extern "C"
+auto MakeCamera(f32 Translate, vec2 const& Rotate) -> mat4;
 
 }

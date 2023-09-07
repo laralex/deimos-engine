@@ -1,32 +1,39 @@
 #include "dei_platform/Window.hpp"
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+namespace {
+
+
+
+}
 
 namespace dei::platform {
 
-static GLFWwindow* s_CurrentWindow;
+auto CreateWindowSystem() -> std::shared_ptr<std::nullptr_t> {
+    glfwInit();
+    return std::shared_ptr<std::nullptr_t>(
+        nullptr, [](std::nullptr_t){ glfwTerminate(); });
+}
 
-bool CreateWindow(size_t width, size_t height, const char* title) {
+auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
+    if (window == nullptr) {
+        return;
+    }
+    glfwDestroyWindow(window);
+}
+
+auto CreateWindow(CreateWindowArgs&& args) -> WindowHandle {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    s_CurrentWindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    return s_CurrentWindow != nullptr;
+    auto* window = glfwCreateWindow(args.Width, args.Height, args.Title, nullptr, nullptr);
+    return WindowHandle{window};
 }
 
-void DestroyWindow() {
-    if (s_CurrentWindow != nullptr) {
-      glfwDestroyWindow(s_CurrentWindow);
-    }
-    glfwTerminate();
-}
-
-void PollWindowEvents() {
+auto PollWindowEvents(const WindowHandle& window) -> void {
     glfwPollEvents();
 }
 
-bool IsWindowClosing() {
-   return s_CurrentWindow == nullptr || glfwWindowShouldClose(s_CurrentWindow);
+auto IsWindowClosing(const WindowHandle& window) -> bool {
+   return window == nullptr || glfwWindowShouldClose(window.get());
 }
 
 }
