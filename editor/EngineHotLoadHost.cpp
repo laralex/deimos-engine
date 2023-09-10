@@ -11,6 +11,21 @@ struct EngineState {
     std::uint32_t DrawCounter{0};
 };
 
+auto OnKeyboardDefault(dei::platform::KeyCode key, dei::platform::KeyState state) -> void {
+    using namespace dei::platform;
+    if (state == KeyState::RELEASE) {
+        printf("Release key\n");
+    } else if (state == KeyState::PRESS) {
+        printf("Press key\n");
+    }
+}
+
+auto OnKeyboardQ(dei::platform::KeyCode key, dei::platform::KeyState state) -> void {
+    using namespace dei::platform;
+    if (state == KeyState::PRESS) {
+        printf("QQQ\n");
+    }
+}
 // args:
 // 1: install directory path (absolute)
 // 2: engine library basename (e.g. dei)
@@ -22,10 +37,22 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem();
-    auto window = dei::platform::CreateWindow({800, 600, "Vulkan window"});
-    if (window == nullptr) {
+    auto windowTitle = dei::platform::StringJoin("My window: #frame=XXXXXXXXXX");
+    auto titleOffsetFrame = 18, titleSizeFrame = 10;
+    auto windowBuilder = dei::platform::WindowBuilder{};
+    windowBuilder
+        .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
+        .WithDimensions(800, 600)
+        .WithTitleUtf8(windowTitle.c_str())
+        .WithKeymap({
+            {dei::platform::KeyCode::LET_Q, &OnKeyboardQ},
+            {dei::platform::KeyCode::ANYTHING, &OnKeyboardDefault},
+        });
+    auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
+    if (maybeWindow == std::nullopt) {
         exit(1);
     }
+    auto window = *std::move(maybeWindow);
 
     // set up hot reloading
     auto engineHotReloader = cr_plugin{};
@@ -37,9 +64,15 @@ auto main(int argc, char *argv[]) -> int {
 
     // app loop
     auto windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
+    auto updateWindowTitleEvery = 1000;
     do {
-        dei::platform::PollWindowEvents(window);
-
+        dei::platform::PollWindowEvents(windowSystem);
+        if (engineState.DrawCounter % updateWindowTitleEvery == 0) {
+            auto&& drawCounterStr = std::to_string(engineState.DrawCounter);
+            dei::platform::SetSubstringInplace(windowTitle,
+                drawCounterStr.c_str(), titleOffsetFrame, titleSizeFrame, ' ');
+            dei::platform::WindowSetTitleUtf8(window, windowTitle.c_str());
+        }
         {
             auto doReloadCheck = (engineState.DrawCounter % hotReloadFrequency) == 0;
             auto engineAnswer = cr_plugin_update(engineHotReloader, doReloadCheck);
@@ -51,7 +84,7 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
-        windowClosing = dei::platform::IsWindowClosing(window);
+        windowClosing = dei::platform::WindowIsClosing(window);
     } while(!(windowClosing || engineClosing || hotReloadCrashing));
 
     printf("windowClose=%d engineClose=%d hotReloadCrash=%d\n", windowClosing, engineClosing, hotReloadCrashing);

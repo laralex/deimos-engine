@@ -2,20 +2,41 @@
 #include "dei_platform/Util.hpp"
 
 #include <sstream>
+#include <cstring>
 
 namespace dei::platform {
 
+auto SetSubstringInplace(std::string& destination, const char* source, size_t offset, size_t size, char padValue) -> void {
+    if (offset >= destination.size()) {
+        return;
+    }
+    auto begin = destination.data() + offset;
+    size = std::min(size, destination.size() - offset);
+    auto end = begin + size;
+    auto sourceSize = 0;
+    for (auto i = 0; i < size; ++i) {
+        if (source[i] == '\0') {
+            sourceSize = i;
+            break;
+        }
+        begin[i] = source[i];
+    }
+    for (auto i = sourceSize; i < size; ++i) {
+        begin[i] = padValue;
+    }
+}
+
 auto MakeLibraryFilepath(const char* directoryPath, const char* basename) -> std::string {
-    std::stringstream ss;
-    ss << directoryPath << '/';
+    return StringJoin(
+    directoryPath, "/"
 #if defined(DEI_WINDOWS)
-    ss <<  basename << ".dll";
+    , basename, ".dll"
 #elif defined(DEI_LINUX)
-    ss << "lib" << basename << ".so";
+    , "lib", basename, ".so"
 #elif defined(DEI_OSX)
-    ss << "lib" << basename << ".dylib";
+    , "lib", basename, ".dylib"
 #endif
-    return ss.str();
+    );
 }
 
 }

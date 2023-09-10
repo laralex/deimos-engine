@@ -1,27 +1,64 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "Prelude.hpp"
+#include "Keyboard.hpp"
 
-#include <stddef.h>
 #include <memory>
+#include <optional>
 
 namespace dei::platform {
 
-auto CreateWindowSystem() -> std::shared_ptr<std::nullptr_t>;
+auto CreateWindowSystem() -> WindowSystemHandle;
+auto PollWindowEvents(const WindowSystemHandle&) -> void;
 
 struct CreateWindowArgs {
    size_t Width;
    size_t Height;
-   const char* Title;
+   const char* TitleUtf8;
+   enum class GraphicsBackend {
+      VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
+   } GraphicalBackend;
+   KeyMap KeyMap;
 };
 
-struct WindowDestroyer {
-   auto operator()(GLFWwindow* window) -> void;
+struct WindowBuilder {
+   WindowBuilder() = default;
+   WindowBuilder(const WindowBuilder&) = delete;
+   WindowBuilder(WindowBuilder&&) = default;
+   auto operator=(WindowBuilder&&) -> WindowBuilder& = default;
+   auto WithDimensions(size_t width, size_t height) -> WindowBuilder&;
+   auto WithTitleUtf8(const char*) -> WindowBuilder&;
+   auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
+   auto WithKeymap(KeyMap&&) -> WindowBuilder&;
+   auto IsValid() const -> bool;
+   friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
+private:
+   CreateWindowArgs _args;
 };
-using WindowHandle = std::unique_ptr<GLFWwindow, WindowDestroyer>;
-auto CreateWindow(CreateWindowArgs&&) -> WindowHandle;
-auto PollWindowEvents(const WindowHandle&) -> void;
-auto IsWindowClosing(const WindowHandle&) -> bool;
+
+//    Window(Window&&) = default;
+//    Window(const Window&) = delete;
+//    auto IsClosing() const -> bool;
+//    auto GetWidth() const -> size_t;
+//    auto GetHeight() const -> size_t;
+//    auto SetTitleUtf8(const char* titleUtf8) -> void;
+//    auto SetKeyMap(KeyMap&&) -> void;
+// protected:
+//    static auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+// private:
+//    explicit Window(const WindowSystemHandle&, CreateWindowArgs&&);
+//    WindowHandle _window;
+//    WindowSystemHandle _windowSystem;
+//    CreateWindowArgs _createArgs;
+// };
+
+auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
+auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& builder) -> std::optional<WindowHandle>;
+auto WindowSetTitleUtf8(const WindowHandle&, const char* titleUtf8) -> void;
+auto WindowIsClosing(const WindowHandle&) -> bool;
+auto WindowGetSize(const WindowHandle&) -> size2i;
+auto WindowSetKeyMap(const WindowHandle&, KeyMap&&);
+
+//glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform
