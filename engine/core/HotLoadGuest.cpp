@@ -64,9 +64,7 @@ auto OnLoad(cr_plugin *ctx) -> int {
 }
 
 auto OnUpdate(cr_plugin *ctx) -> int {
-    if (state->DrawCounter++ % 50000 == 0) {
-        std::cout << "dei::OnUpdate() v" << ctx->version << " f=" << state->DrawCounter << '\n';
-    }
+    ++state->DrawCounter;
     return 0;
 }
 

@@ -10,6 +10,7 @@ namespace dei::platform {
 
 auto CreateWindowSystem() -> WindowSystemHandle;
 auto PollWindowEvents(const WindowSystemHandle&) -> void;
+auto GetKeyName(input::KeyCode) -> const char*;
 
 struct CreateWindowArgs {
    size_t Width;
@@ -18,18 +19,18 @@ struct CreateWindowArgs {
    enum class GraphicsBackend {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
    } GraphicalBackend;
-   KeyMap KeyMap;
+   input::KeyMap KeyMap;
 };
 
 struct WindowBuilder {
-   WindowBuilder() = default;
+   WindowBuilder() {};
    WindowBuilder(const WindowBuilder&) = delete;
    WindowBuilder(WindowBuilder&&) = default;
    auto operator=(WindowBuilder&&) -> WindowBuilder& = default;
    auto WithDimensions(size_t width, size_t height) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
-   auto WithKeymap(KeyMap&&) -> WindowBuilder&;
+   auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto IsValid() const -> bool;
    friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 private:
@@ -57,8 +58,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& bui
 auto WindowSetTitleUtf8(const WindowHandle&, const char* titleUtf8) -> void;
 auto WindowIsClosing(const WindowHandle&) -> bool;
 auto WindowGetSize(const WindowHandle&) -> size2i;
-auto WindowSetKeyMap(const WindowHandle&, KeyMap&&);
-
+auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&);
+auto WindowSwapBuffers(const WindowHandle&) -> void;
 //glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform

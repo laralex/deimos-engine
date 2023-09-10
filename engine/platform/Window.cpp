@@ -4,32 +4,49 @@ namespace {
 
 typedef void (*WindowKeyboardCallback)(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-using namespace dei::platform;
+using namespace dei;
+
 struct WindowState {
-    WindowSystemHandle WindowSystem;
-    KeyMap KeyMap;
+    platform::WindowSystemHandle WindowSystem;
+    platform::input::KeyMap KeyMap;
 };
 
+auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
+    return glfwGetKey(window, key) == GLFW_PRESS
+        || glfwGetKey(window, keyAlias) == GLFW_PRESS;
+}
+
 auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
+    using platform::input::KeyCode;
     auto windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
     auto keyCode = static_cast<KeyCode>(key);
-    auto foundAction = windowState->KeyMap.find(keyCode);
-    if (foundAction != windowState->KeyMap.end()) {
-        foundAction->second.operator()(
-            static_cast<KeyCode>(key),
-            static_cast<KeyState>(action)
-        );
+    auto keyName = glfwGetKeyName(key, scancode);
+    auto modifierKeysState = platform::input::ModifierKeysState{};
+    if (IsKeyPressed(window, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL)) {
+        modifierKeysState |= platform::input::KEY_MOD_CTRL;
+    }
+    if (IsKeyPressed(window, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT)) {
+        modifierKeysState |= platform::input::KEY_MOD_SHIFT;
+    }
+    if (IsKeyPressed(window, GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT)) {
+        modifierKeysState |= platform::input::KEY_MOD_ALT;
+    }
+    auto foundAction = windowState->KeyMap.find({keyCode, modifierKeysState});
+    if (foundAction == windowState->KeyMap.end()) {
+        // fallback to default if present
+        foundAction = windowState->KeyMap.find({
+            platform::input::KeyCode::ANYTHING,
+            platform::input::KEY_MOD_ANYTHING,
+        });
+    }
+    if (foundAction == windowState->KeyMap.end()) {
         return;
     }
-    // fallback to default if present
-    foundAction = windowState->KeyMap.find(KeyCode::ANYTHING);
-    if (foundAction != windowState->KeyMap.end()) {
-        foundAction->second.operator()(
-            static_cast<KeyCode>(key),
-            static_cast<KeyState>(action)
-        );
-    }
-        
+    foundAction->second.operator()(
+        keyCode,
+        static_cast<platform::input::KeyState>(action),
+        keyName
+    );
 }
 
 } // namespace
@@ -44,6 +61,10 @@ auto CreateWindowSystem() -> WindowSystemHandle {
 
 auto PollWindowEvents(const WindowSystemHandle& window) -> void {
     glfwPollEvents();
+}
+
+auto GetKeyName(input::KeyCode key) -> const char* {
+    return glfwGetKeyName(static_cast<int>(key), 0);
 }
 
 auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
@@ -69,7 +90,7 @@ auto WindowBuilder::WithGraphicsBackend(CreateWindowArgs::GraphicsBackend graphi
     return *this;
 }
 
-auto WindowBuilder::WithKeymap(KeyMap&& keymap) -> WindowBuilder& {
+auto WindowBuilder::WithKeymap(platform::input::KeyMap&& keymap) -> WindowBuilder& {
     _args.KeyMap = std::move(keymap);
     return *this;
 }
@@ -113,9 +134,13 @@ auto WindowSetTitleUtf8(const WindowHandle& window, const char* titleUtf8) -> vo
     glfwSetWindowTitle(window.get(), titleUtf8);
 }
 
-auto WindowSetKeyMap(const WindowHandle& window, KeyMap&& keymap) {
+auto WindowSetKeyMap(const WindowHandle& window, platform::input::KeyMap&& keymap) {
     auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
     windowState->KeyMap = std::move(keymap);
+}
+
+auto WindowSwapBuffers(const WindowHandle& window) -> void {
+    glfwSwapBuffers(window.get());
 }
 
 }

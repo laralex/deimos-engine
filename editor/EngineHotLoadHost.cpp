@@ -1,5 +1,8 @@
 #include "dei_platform/Util.hpp"
 #include "dei_platform/Window.hpp"
+#include "dei_platform/Time.hpp"
+
+using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
 #include <cr.h>
@@ -11,19 +14,17 @@ struct EngineState {
     std::uint32_t DrawCounter{0};
 };
 
-auto OnKeyboardDefault(dei::platform::KeyCode key, dei::platform::KeyState state) -> void {
-    using namespace dei::platform;
+auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::RELEASE) {
-        printf("Release key\n");
+        printf("Release key %s\n", keyName);
     } else if (state == KeyState::PRESS) {
-        printf("Press key\n");
+        printf("Press key %s\n", keyName);
     }
 }
 
-auto OnKeyboardQ(dei::platform::KeyCode key, dei::platform::KeyState state) -> void {
-    using namespace dei::platform;
+auto OnKeyboardQ(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::PRESS) {
-        printf("QQQ\n");
+        printf("QQQQQQQQQQQQQQQQQQQQQQQ\n");
     }
 }
 // args:
@@ -34,19 +35,21 @@ auto main(int argc, char *argv[]) -> int {
     // parse args
     assert(argc >= 3);
     auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 100000);
+    constexpr double FPS_CAP = 300.0;
+    constexpr double TICK_CAP_SECONDS = 1.0 / FPS_CAP;
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem();
     auto windowTitle = dei::platform::StringJoin("My window: #frame=XXXXXXXXXX");
-    auto titleOffsetFrame = 18, titleSizeFrame = 10;
+    constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
         .WithKeymap({
-            {dei::platform::KeyCode::LET_Q, &OnKeyboardQ},
-            {dei::platform::KeyCode::ANYTHING, &OnKeyboardDefault},
+            {{KeyCode::LET_Q, KEY_MOD_ALT}, &OnKeyboardQ},
+            {{KeyCode::ANYTHING, KEY_MOD_ANYTHING}, &OnKeyboardDefault},
         });
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
@@ -64,13 +67,14 @@ auto main(int argc, char *argv[]) -> int {
 
     // app loop
     auto windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
-    auto updateWindowTitleEvery = 1000;
+    auto updateWindowTitleEvery = 10;
+    auto beginTimeSeconds = dei::platform::GetTimeSec();
     do {
         dei::platform::PollWindowEvents(windowSystem);
         if (engineState.DrawCounter % updateWindowTitleEvery == 0) {
             auto&& drawCounterStr = std::to_string(engineState.DrawCounter);
             dei::platform::SetSubstringInplace(windowTitle,
-                drawCounterStr.c_str(), titleOffsetFrame, titleSizeFrame, ' ');
+                drawCounterStr.c_str(), WINTITLE_FRAME_OFFSET, WINTITLE_FRAME_SIZE, ' ');
             dei::platform::WindowSetTitleUtf8(window, windowTitle.c_str());
         }
         {
@@ -84,7 +88,21 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
+        dei::platform::WindowSwapBuffers(window);
         windowClosing = dei::platform::WindowIsClosing(window);
+
+        auto nowSeconds = dei::platform::GetTimeSec();
+        auto deltaSeconds = nowSeconds - beginTimeSeconds;
+        if (deltaSeconds < TICK_CAP_SECONDS) {
+            auto remainingMillisec = static_cast<uint32_t>(1000.0*(TICK_CAP_SECONDS - deltaSeconds)) ;
+            if (remainingMillisec > 0) {
+                dei::platform::ThreadSleepMs(remainingMillisec);
+            }
+        }
+
+        nowSeconds = dei::platform::GetTimeSec();
+        deltaSeconds = nowSeconds - beginTimeSeconds;
+        beginTimeSeconds = nowSeconds;
     } while(!(windowClosing || engineClosing || hotReloadCrashing));
 
     printf("windowClose=%d engineClose=%d hotReloadCrash=%d\n", windowClosing, engineClosing, hotReloadCrashing);

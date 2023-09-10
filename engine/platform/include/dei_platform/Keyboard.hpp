@@ -4,8 +4,17 @@
 
 #include <unordered_map>
 #include <functional>
+#include <bitset>
 
-namespace dei::platform {
+namespace {
+
+constexpr size_t KEY_CTRL_BIT = 1UL;
+constexpr size_t KEY_SHIFT_BIT = 2UL;
+constexpr size_t KEY_ALT_BIT = 4UL;
+
+} // namespace ::
+
+namespace dei::platform::input {
 
 enum class KeyState {
    PRESS = GLFW_PRESS,
@@ -51,7 +60,7 @@ enum class KeyCode {
    LET_8 = GLFW_KEY_8,
    LET_9 = GLFW_KEY_9,
    LET_0 = GLFW_KEY_0,
-   CRTL_LEFT = GLFW_KEY_LEFT_CONTROL,
+   CTRL_LEFT = GLFW_KEY_LEFT_CONTROL,
    SHIFT_LEFT = GLFW_KEY_LEFT_SHIFT,
    ALT_LEFT = GLFW_KEY_LEFT_ALT,
    CAPS_LOCK = GLFW_KEY_CAPS_LOCK,
@@ -60,6 +69,18 @@ enum class KeyCode {
    ENTER = GLFW_KEY_ENTER,
 };
 
-using KeyMap = std::unordered_map<KeyCode, std::function<void(KeyCode, KeyState)>>;
+
+using ModifierKeysState = std::bitset<8>;
+constexpr ModifierKeysState KEY_MOD_ANYTHING = {0};
+constexpr ModifierKeysState KEY_MOD_CTRL = {::KEY_CTRL_BIT};
+constexpr ModifierKeysState KEY_MOD_SHIFT = {::KEY_SHIFT_BIT};
+constexpr ModifierKeysState KEY_MOD_ALT = {::KEY_ALT_BIT};
+constexpr ModifierKeysState CTRL_SHIFT = {::KEY_CTRL_BIT | ::KEY_SHIFT_BIT};
+
+using KeyMap = std::unordered_map<
+   std::pair<KeyCode, ModifierKeysState>,
+   std::function<void(KeyCode, KeyState, const char*)>,
+   pair_hash
+>;
 
 }
