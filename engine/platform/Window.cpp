@@ -2,8 +2,6 @@
 
 namespace {
 
-typedef void (*WindowKeyboardCallback)(GLFWwindow* window, int key, int scancode, int action, int mods);
-
 using namespace dei;
 
 struct WindowState {
@@ -22,21 +20,21 @@ auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
     auto keyCode = static_cast<KeyCode>(key);
     auto keyName = glfwGetKeyName(key, scancode);
     auto modifierKeysState = platform::input::ModifierKeysState{};
-    if (IsKeyPressed(window, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL)) {
-        modifierKeysState |= platform::input::KEY_MOD_CTRL;
+    if (mods & GLFW_MOD_CONTROL) {
+        modifierKeysState |= platform::input::MODIFIERS_CTRL;
     }
-    if (IsKeyPressed(window, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT)) {
-        modifierKeysState |= platform::input::KEY_MOD_SHIFT;
+    if (mods & GLFW_MOD_SHIFT) {
+        modifierKeysState |= platform::input::MODIFIERS_SHIFT;
     }
-    if (IsKeyPressed(window, GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT)) {
-        modifierKeysState |= platform::input::KEY_MOD_ALT;
+    if (mods & GLFW_MOD_ALT) {
+        modifierKeysState |= platform::input::MODIFIERS_ALT;
     }
     auto foundAction = windowState->KeyMap.find({keyCode, modifierKeysState});
     if (foundAction == windowState->KeyMap.end()) {
         // fallback to default if present
         foundAction = windowState->KeyMap.find({
             platform::input::KeyCode::ANYTHING,
-            platform::input::KEY_MOD_ANYTHING,
+            platform::input::MODIFIERS_ANYTHING,
         });
     }
     if (foundAction == windowState->KeyMap.end()) {

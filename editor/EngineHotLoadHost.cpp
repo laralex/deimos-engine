@@ -16,15 +16,21 @@ struct EngineState {
 
 auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::RELEASE) {
-        printf("Release key %s\n", keyName);
+        printf("Release key %s %d %d\n", keyName, key, state);
     } else if (state == KeyState::PRESS) {
-        printf("Press key %s\n", keyName);
+        printf("Press key %s %d %d\n", keyName, key, state);
     }
 }
 
 auto OnKeyboardQ(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::PRESS) {
         printf("QQQQQQQQQQQQQQQQQQQQQQQ\n");
+    }
+}
+
+auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
+    if (state == KeyState::PRESS) {
+        printf("RRRRRRRRRRRRRRRRRRRRRRR\n");
     }
 }
 // args:
@@ -48,8 +54,9 @@ auto main(int argc, char *argv[]) -> int {
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
         .WithKeymap({
-            {{KeyCode::LET_Q, KEY_MOD_ALT}, &OnKeyboardQ},
-            {{KeyCode::ANYTHING, KEY_MOD_ANYTHING}, &OnKeyboardDefault},
+            {{KeyCode::KEY_Q, MODIFIERS_ALT}, &OnKeyboardQ},
+            {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
+            {{KeyCode::ANYTHING, MODIFIERS_ANYTHING}, &OnKeyboardDefault},
         });
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
