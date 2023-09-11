@@ -2,6 +2,7 @@
 
 #include "Prelude.hpp"
 #include "Keyboard.hpp"
+#include "Mouse.hpp"
 
 #include <memory>
 #include <optional>
@@ -21,6 +22,7 @@ struct CreateWindowArgs {
    } GraphicalBackend;
    input::KeyMap KeyMap;
    input::InputTextCallback InputTextCallback;
+   input::MousePositionCallback MousePositionCallback;
 };
 
 struct WindowBuilder {
@@ -33,6 +35,7 @@ struct WindowBuilder {
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
+   auto WithMouseCallback(input::MousePositionCallback) -> WindowBuilder&;
    auto IsValid() const -> bool;
    friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 private:
@@ -59,11 +62,13 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builde
 auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& builder) -> std::optional<WindowHandle>;
 auto WindowSetTitleUtf8(const WindowHandle&, const char* titleUtf8) -> void;
 auto WindowIsClosing(const WindowHandle&) -> bool;
-auto WindowGetSize(const WindowHandle&) -> size2i;
+auto WindowGetSize(const WindowHandle&) -> isize2;
 auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&) -> void;
 auto WindowSwapBuffers(const WindowHandle&) -> void;
 auto WindowClearInput(const WindowHandle&) -> void;
 auto WindowUndoInput(const WindowHandle&) -> void;
+auto WindowGetMousePosition(const WindowHandle&) -> dvec2;
+auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
 //glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform

@@ -24,11 +24,15 @@ enum class GraphicsApi {
    DIRECTX_11
 };
 
-struct vec2i {
+struct ivec2 {
    int x, y;
 };
 
-struct size2i {
+struct dvec2 {
+   double x, y;
+};
+
+struct isize2 {
    int width, height;
 };
 

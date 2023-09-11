@@ -20,6 +20,10 @@ auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) 
     std::cout << currentInputUtf8 << '\n';
 }
 
+auto OnMouseMoved(double windowX, double windowY) {
+    std::cout << '(' << windowX << ',' << windowY << ")\n";
+}
+
 auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::RELEASE) {
         printf("Release key %s %d %d\n", keyName, key, state);
@@ -60,7 +64,8 @@ auto main(int argc, char *argv[]) -> int {
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
-        .WithInputTextCallback(&OnTextInput);
+        .WithInputTextCallback(&OnTextInput)
+        .WithMouseCallback(&OnMouseMoved);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
         exit(1);

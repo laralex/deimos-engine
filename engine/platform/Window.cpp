@@ -10,6 +10,7 @@ struct WindowState {
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
     platform::input::InputTextCallback InputTextCallback;
+    platform::input::MousePositionCallback MousePositionCallback;
 };
 
 auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
@@ -53,9 +54,18 @@ auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 auto TextInputCallback(GLFWwindow* window, uint32_t codepoint) {
     auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
     auto isAppended = dei::platform::AppendToUtf8{}(windowState->InputTextUtf8, codepoint);
-    if (isAppended && windowState->InputTextCallback != nullptr) {
-        windowState->InputTextCallback(windowState->InputTextUtf8, codepoint);
+    if (!isAppended || windowState->InputTextCallback == nullptr) {
+        return;
     }
+    windowState->InputTextCallback(windowState->InputTextUtf8, codepoint);
+}
+
+auto MousePositionCallback(GLFWwindow* window, double x, double y) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MousePositionCallback == nullptr) {
+        return;
+    }
+    windowState->MousePositionCallback(x, y);
 }
 
 } // namespace
@@ -113,6 +123,11 @@ auto WindowBuilder::WithInputTextCallback(input::InputTextCallback callback) -> 
     return *this;
 }
 
+auto WindowBuilder::WithMouseCallback(input::MousePositionCallback callback) -> WindowBuilder& {
+    _args.MousePositionCallback = callback;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Height > 0 && _args.Width > 0
            && _args.GraphicalBackend == CreateWindowArgs::GraphicsBackend::VULKAN;
@@ -135,12 +150,14 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         windowSystem,
         std::move(args.KeyMap),
         std::string{},
-        std::move(args.InputTextCallback)
+        std::move(args.InputTextCallback),
+        std::move(args.MousePositionCallback),
     };
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
+    glfwSetCursorPosCallback(window, &::MousePositionCallback);
     return WindowHandle{window};
 }
 
@@ -148,8 +165,8 @@ auto WindowIsClosing(const WindowHandle& window) -> bool {
     return glfwWindowShouldClose(window.get());
 }
 
-auto WindowGetSize(const WindowHandle& window) -> size2i {
-    auto size = size2i{};
+auto WindowGetSize(const WindowHandle& window) -> isize2 {
+    auto size = isize2{};
     glfwGetWindowSize(window.get(), &size.width, &size.height);
     return size;
 }
@@ -178,6 +195,16 @@ auto WindowUndoInput(const WindowHandle& window) -> void {
         return;
     }
     windowState->InputTextUtf8.resize(windowState->InputTextUtf8.size() - 1);
+}
+
+auto WindowGetMousePosition(const WindowHandle& window) -> dvec2 {
+    dvec2 pos;
+    glfwGetCursorPos(window.get(), &pos.x, &pos.y);
+    return pos;
+}
+
+auto WindowGetMousePosition(const WindowHandle& window, dvec2& destination) -> void {
+    glfwGetCursorPos(window.get(), &destination.x, &destination.y);
 }
 
 }
