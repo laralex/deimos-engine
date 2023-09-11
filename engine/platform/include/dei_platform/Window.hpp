@@ -23,6 +23,7 @@ struct CreateWindowArgs {
    input::KeyMap KeyMap;
    input::InputTextCallback InputTextCallback;
    input::MousePositionCallback MousePositionCallback;
+   input::MouseButtonCallback MouseButtonCallback;
 };
 
 struct WindowBuilder {
@@ -35,7 +36,8 @@ struct WindowBuilder {
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
-   auto WithMouseCallback(input::MousePositionCallback) -> WindowBuilder&;
+   auto WithMousePositionCallback(input::MousePositionCallback) -> WindowBuilder&;
+   auto WithMouseButtonCallback(input::MouseButtonCallback) -> WindowBuilder&;
    auto IsValid() const -> bool;
    friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 private:

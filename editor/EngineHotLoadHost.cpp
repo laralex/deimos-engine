@@ -1,6 +1,7 @@
 #include "dei_platform/Util.hpp"
 #include "dei_platform/Window.hpp"
 #include "dei_platform/Time.hpp"
+#include "dei_platform/Mouse.hpp"
 
 
 using namespace dei::platform::input;
@@ -21,14 +22,18 @@ auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) 
 }
 
 auto OnMouseMoved(double windowX, double windowY) {
-    std::cout << '(' << windowX << ',' << windowY << ")\n";
+    //std::cout << '(' << windowX << ',' << windowY << ")\n";
+}
+
+auto OnMouseButton(MouseButton button, MouseButtonState state) {
+    if (state == MouseButtonState::PRESS) {
+        printf("Press mouse %d %d\n", button);
+    }
 }
 
 auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void {
-    if (state == KeyState::RELEASE) {
-        printf("Release key %s %d %d\n", keyName, key, state);
-    } else if (state == KeyState::PRESS) {
-        printf("Press key %s %d %d\n", keyName, key, state);
+    if (state == KeyState::PRESS) {
+        printf("Press key %s %d\n", keyName, key);
     }
 }
 
@@ -57,15 +62,17 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem();
-    auto windowTitle = dei::platform::StringJoin("My window: #frame=XXXXXXXXXX");
+    auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 mouse=(1234.0,1234.0)");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
+    // constexpr auto WINTITLE_MOUSE_OFFSET = 36, WINTITLE_FRAME_SIZE = 13;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
-        .WithMouseCallback(&OnMouseMoved);
+        .WithMousePositionCallback(&OnMouseMoved)
+        .WithMouseButtonCallback(&OnMouseButton);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
         exit(1);

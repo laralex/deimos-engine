@@ -11,6 +11,7 @@ struct WindowState {
     std::string InputTextUtf8;
     platform::input::InputTextCallback InputTextCallback;
     platform::input::MousePositionCallback MousePositionCallback;
+    platform::input::MouseButtonCallback MouseButtonCallback;
 };
 
 auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
@@ -68,6 +69,17 @@ auto MousePositionCallback(GLFWwindow* window, double x, double y) {
     windowState->MousePositionCallback(x, y);
 }
 
+auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MouseButtonCallback == nullptr) {
+        return;
+    }
+    windowState->MouseButtonCallback(
+        static_cast<dei::platform::input::MouseButton>(button),
+        static_cast<dei::platform::input::MouseButtonState>(action)
+    );
+}
+
 } // namespace
 
 namespace dei::platform {
@@ -123,8 +135,13 @@ auto WindowBuilder::WithInputTextCallback(input::InputTextCallback callback) -> 
     return *this;
 }
 
-auto WindowBuilder::WithMouseCallback(input::MousePositionCallback callback) -> WindowBuilder& {
+auto WindowBuilder::WithMousePositionCallback(input::MousePositionCallback callback) -> WindowBuilder& {
     _args.MousePositionCallback = callback;
+    return *this;
+}
+
+auto WindowBuilder::WithMouseButtonCallback(input::MouseButtonCallback callback) -> WindowBuilder& {
+    _args.MouseButtonCallback = callback;
     return *this;
 }
 
@@ -152,12 +169,14 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         std::string{},
         std::move(args.InputTextCallback),
         std::move(args.MousePositionCallback),
+        std::move(args.MouseButtonCallback),
     };
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
     glfwSetCursorPosCallback(window, &::MousePositionCallback);
+    glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     return WindowHandle{window};
 }
 
