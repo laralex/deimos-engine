@@ -12,6 +12,8 @@ namespace dei::platform {
 auto CreateWindowSystem() -> WindowSystemHandle;
 auto PollWindowEvents(const WindowSystemHandle&) -> void;
 auto GetKeyName(input::KeyCode) -> const char*;
+auto GetClipboardUtf8(const WindowSystemHandle&) -> const char *;
+auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void;
 
 struct CreateWindowArgs {
    size_t Width;
@@ -67,6 +69,7 @@ auto WindowIsClosing(const WindowHandle&) -> bool;
 auto WindowGetSize(const WindowHandle&) -> isize2;
 auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&) -> void;
 auto WindowSwapBuffers(const WindowHandle&) -> void;
+auto WindowAppendInputUtf8(const WindowHandle&, const char* textUtf8) -> void;
 auto WindowClearInput(const WindowHandle&) -> void;
 auto WindowUndoInput(const WindowHandle&) -> void;
 auto WindowGetMousePosition(const WindowHandle&) -> dvec2;

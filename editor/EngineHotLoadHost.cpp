@@ -3,7 +3,6 @@
 #include "dei_platform/Time.hpp"
 #include "dei_platform/Mouse.hpp"
 
-
 using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
@@ -92,6 +91,12 @@ auto main(int argc, char *argv[]) -> int {
         {{KeyCode::BACKSPACE, MODIFIERS_NONE}, [&](KeyCode key, KeyState state, const char* keyName){
             if (state == KeyState::PRESS) {
                 dei::platform::WindowUndoInput(window);
+            }
+        }},
+        {{KeyCode::INSERT, MODIFIERS_SHIFT}, [&](KeyCode key, KeyState state, const char* keyName){
+            if (state == KeyState::PRESS) {
+                auto* clipboard = dei::platform::GetClipboardUtf8(windowSystem);
+                dei::platform::WindowAppendInputUtf8(window, clipboard);
             }
         }},
     });

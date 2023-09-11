@@ -22,6 +22,7 @@ auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
 auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
     using platform::input::KeyCode;
     auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    printf("@ %d %d", key, scancode);
     auto keyCode = static_cast<KeyCode>(key);
     auto keyName = glfwGetKeyName(key, scancode);
     auto modifierKeysState = platform::input::ModifierKeysState{};
@@ -86,6 +87,9 @@ namespace dei::platform {
 
 auto CreateWindowSystem() -> WindowSystemHandle {
     glfwInit();
+#if NDEBUG == 0
+    printf("GLFW version: %s\n", glfwGetVersionString());
+#endif
     return WindowSystemHandle(
         nullptr, [](std::nullptr_t){ glfwTerminate(); });
 }
@@ -96,6 +100,14 @@ auto PollWindowEvents(const WindowSystemHandle& window) -> void {
 
 auto GetKeyName(input::KeyCode key) -> const char* {
     return glfwGetKeyName(static_cast<int>(key), 0);
+}
+
+auto GetClipboardUtf8(const WindowSystemHandle&) -> const char * {
+    return glfwGetClipboardString(NULL);
+}
+
+auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void {
+    glfwSetClipboardString(NULL, textUtff8);
 }
 
 auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
@@ -201,6 +213,11 @@ auto WindowSetKeyMap(const WindowHandle& window, platform::input::KeyMap&& keyma
 
 auto WindowSwapBuffers(const WindowHandle& window) -> void {
     glfwSwapBuffers(window.get());
+}
+
+auto WindowAppendInputUtf8(const WindowHandle& window, const char* textUtf8) -> void {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
+    windowState->InputTextUtf8.append(textUtf8);
 }
 
 auto WindowClearInput(const WindowHandle& window) -> void {
