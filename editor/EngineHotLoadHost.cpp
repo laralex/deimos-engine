@@ -2,6 +2,7 @@
 #include "dei_platform/Window.hpp"
 #include "dei_platform/Time.hpp"
 
+
 using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
@@ -9,10 +10,15 @@ using namespace dei::platform::input;
 
 #include <cassert>
 #include <string>
+#include <iostream>
 
 struct EngineState {
     std::uint32_t DrawCounter{0};
 };
+
+auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) {
+    std::cout << currentInputUtf8 << '\n';
+}
 
 auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::RELEASE) {
@@ -33,6 +39,7 @@ auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
         printf("RRRRRRRRRRRRRRRRRRRRRRR\n");
     }
 }
+
 // args:
 // 1: install directory path (absolute)
 // 2: engine library basename (e.g. dei)
@@ -53,16 +60,29 @@ auto main(int argc, char *argv[]) -> int {
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
-        .WithKeymap({
-            {{KeyCode::KEY_Q, MODIFIERS_ALT}, &OnKeyboardQ},
-            {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
-            {{KeyCode::ANYTHING, MODIFIERS_ANYTHING}, &OnKeyboardDefault},
-        });
+        .WithInputTextCallback(&OnTextInput);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
         exit(1);
     }
     auto window = *std::move(maybeWindow);
+
+    dei::platform::WindowSetKeyMap(window, {
+        {{KeyCode::KEY_Q, MODIFIERS_ALT}, &OnKeyboardQ},
+        {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
+        {{KeyCode::ANYTHING, MODIFIERS_NONE}, &OnKeyboardDefault},
+        // TODO: doesn't work with BACKSPACE (-1 code)
+        {{KeyCode::BACKSPACE, MODIFIERS_CTRL}, [&](KeyCode key, KeyState state, const char* keyName){
+            if (state == KeyState::PRESS) {
+                dei::platform::WindowClearInput(window);
+            }
+        }},
+        {{KeyCode::BACKSPACE, MODIFIERS_NONE}, [&](KeyCode key, KeyState state, const char* keyName){
+            if (state == KeyState::PRESS) {
+                dei::platform::WindowUndoInput(window);
+            }
+        }},
+    });
 
     // set up hot reloading
     auto engineHotReloader = cr_plugin{};

@@ -20,6 +20,7 @@ struct CreateWindowArgs {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
    } GraphicalBackend;
    input::KeyMap KeyMap;
+   input::InputTextCallback InputTextCallback;
 };
 
 struct WindowBuilder {
@@ -31,6 +32,7 @@ struct WindowBuilder {
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
+   auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
    auto IsValid() const -> bool;
    friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 private:
@@ -58,8 +60,10 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& bui
 auto WindowSetTitleUtf8(const WindowHandle&, const char* titleUtf8) -> void;
 auto WindowIsClosing(const WindowHandle&) -> bool;
 auto WindowGetSize(const WindowHandle&) -> size2i;
-auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&);
+auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&) -> void;
 auto WindowSwapBuffers(const WindowHandle&) -> void;
+auto WindowClearInput(const WindowHandle&) -> void;
+auto WindowUndoInput(const WindowHandle&) -> void;
 //glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform

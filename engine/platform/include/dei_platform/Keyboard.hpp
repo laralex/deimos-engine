@@ -70,14 +70,16 @@ enum class KeyCode {
    TAB = GLFW_KEY_TAB,
    ESCAPE = GLFW_KEY_ESCAPE,
    ENTER = GLFW_KEY_ENTER,
+   BACKSPACE = GLFW_KEY_BACKSPACE,
 };
 
 
 using ModifierKeysState = std::bitset<8>;
-constexpr ModifierKeysState MODIFIERS_ANYTHING = {0};
+constexpr ModifierKeysState MODIFIERS_NONE = {0};
 constexpr ModifierKeysState MODIFIERS_CTRL = {::MODIFIER_CTRL_BIT};
 constexpr ModifierKeysState MODIFIERS_SHIFT = {::MODIFIER_SHIFT_BIT};
 constexpr ModifierKeysState MODIFIERS_ALT = {::MODIFIER_ALT_BIT};
+constexpr ModifierKeysState MODIFIERS_SUPER = {::MODIFIER_SUPER_BIT};
 constexpr ModifierKeysState MODIFIERS_CTRL_SHIFT = {::MODIFIER_CTRL_BIT | ::MODIFIER_SHIFT_BIT};
 
 using KeyMap = std::unordered_map<
@@ -85,5 +87,7 @@ using KeyMap = std::unordered_map<
    std::function<void(KeyCode, KeyState, const char*)>,
    pair_hash
 >;
+
+typedef void (*InputTextCallback)(const std::string& currentTextUtf8, uint32_t latestCodepoint);
 
 }
