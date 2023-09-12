@@ -28,6 +28,10 @@ auto OnMouseScrolled(double directionX, double directionY) {
     //std::cout << '[' << directionX << ',' << directionY << "]\n";
 }
 
+auto OnMouseEnteredWindow(bool entered) {
+    std::cout << (entered ? "MOUSE ENTERED" : "MOUSE LEFT") << std::endl;
+}
+
 auto OnMouseButton(MouseButton button, MouseButtonState state) {
     if (state == MouseButtonState::PRESS) {
         printf("Press mouse %d %d\n", button);
@@ -76,7 +80,8 @@ auto main(int argc, char *argv[]) -> int {
         .WithInputTextCallback(&OnTextInput)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)
-        .WithMouseButtonCallback(&OnMouseButton);
+        .WithMouseButtonCallback(&OnMouseButton)
+        .WithMouseEntersWindowCallback(&OnMouseEnteredWindow);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
         exit(1);

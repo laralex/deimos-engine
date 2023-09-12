@@ -13,6 +13,7 @@ struct WindowState {
     platform::input::MousePositionCallback MousePositionCallback;
     platform::input::MouseButtonCallback MouseButtonCallback;
     platform::input::MouseScrollCallback MouseScrollCallback;
+    platform::input::MouseEntersWindowCallback MouseEntersWindowCallback;
 };
 
 auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
@@ -88,6 +89,14 @@ auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         static_cast<dei::platform::input::MouseButton>(button),
         static_cast<dei::platform::input::MouseButtonState>(action)
     );
+}
+
+auto MouseEntersWindowCallback(GLFWwindow* window, int entered) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MouseEntersWindowCallback == nullptr) {
+        return;
+    }
+    windowState->MouseEntersWindowCallback(entered != 0);
 }
 
 } // namespace
@@ -171,6 +180,11 @@ auto WindowBuilder::WithMouseScrollCallback(input::MouseScrollCallback callback)
     return *this;
 }
 
+auto WindowBuilder::WithMouseEntersWindowCallback(input::MouseEntersWindowCallback callback) -> WindowBuilder& {
+    _args.MouseEntersWindowCallback = callback;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Height > 0 && _args.Width > 0
            && _args.GraphicalBackend == CreateWindowArgs::GraphicsBackend::VULKAN;
@@ -197,6 +211,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         std::move(args.MousePositionCallback),
         std::move(args.MouseButtonCallback),
         std::move(args.MouseScrollCallback),
+        std::move(args.MouseEntersWindowCallback),
     };
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
@@ -205,6 +220,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetCursorPosCallback(window, &::MousePositionCallback);
     glfwSetScrollCallback(window, &::MouseScrollCallback);
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
+    glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
+
     return WindowHandle{window};
 }
 

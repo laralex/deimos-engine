@@ -27,6 +27,7 @@ enum class MouseButton {
 typedef void (*MousePositionCallback)(double windowX, double windowY);
 typedef void (*MouseScrollCallback)(double directionX, double directionY);
 typedef void (*MouseButtonCallback)(MouseButton, MouseButtonState);
+typedef void (*MouseEntersWindowCallback)(bool hasEntered);
 
 
 }
