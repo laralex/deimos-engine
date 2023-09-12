@@ -21,6 +21,37 @@ inline auto GetElapsedSec(double beginSec) -> double {
    return glfwGetTime() - beginSec;
 }
 
+inline auto GetClockCounterUnfused() -> uint64_t {
+    // fact call
+    return glfwGetTimerValue();
+}
+
+inline auto GetClockCounter() -> uint64_t {
+    static uint64_t lastClockCounter;
+    uint64_t currentClockCounter = glfwGetTimerValue();
+    if (currentClockCounter == 0) {
+        return lastClockCounter;
+    }
+    lastClockCounter = currentClockCounter;
+    return currentClockCounter;
+}
+
+
+inline auto GetClockFrequencyHertzUnfused() -> uint64_t {
+    // fast call
+    return glfwGetTimerFrequency();
+}
+
+inline auto GetClockFrequencyHertz() -> uint64_t {
+    // call and try to fallback if error
+    auto freqHz = glfwGetTimerFrequency();
+    if (freqHz == 0) {
+        // glfw error, hope retry helps
+        freqHz = glfwGetTimerFrequency();
+    }
+    return freqHz;
+}
+
 #if DEI_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 

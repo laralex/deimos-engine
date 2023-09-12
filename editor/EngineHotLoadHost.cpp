@@ -61,9 +61,9 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem();
-    auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 mouse=(1234.0,1234.0)");
+    auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 time=1234567890");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
-    // constexpr auto WINTITLE_MOUSE_OFFSET = 36, WINTITLE_FRAME_SIZE = 13;
+    constexpr auto WINTITLE_TIME_OFFSET = 34, WINTITLE_TIME_SIZE = 10;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
@@ -119,6 +119,9 @@ auto main(int argc, char *argv[]) -> int {
             auto&& drawCounterStr = std::to_string(engineState.DrawCounter);
             dei::platform::SetSubstringInplace(windowTitle,
                 drawCounterStr.c_str(), WINTITLE_FRAME_OFFSET, WINTITLE_FRAME_SIZE, ' ');
+            auto&& timeSecStr = std::to_string(dei::platform::GetClockCounter() / dei::platform::GetClockFrequencyHertz());
+            dei::platform::SetSubstringInplace(windowTitle,
+                timeSecStr.c_str(), WINTITLE_TIME_OFFSET, WINTITLE_TIME_SIZE, ' ');
             dei::platform::WindowSetTitleUtf8(window, windowTitle.c_str());
         }
         {
