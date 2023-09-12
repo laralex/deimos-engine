@@ -24,6 +24,10 @@ auto OnMouseMoved(double windowX, double windowY) {
     //std::cout << '(' << windowX << ',' << windowY << ")\n";
 }
 
+auto OnMouseScrolled(double directionX, double directionY) {
+    //std::cout << '[' << directionX << ',' << directionY << "]\n";
+}
+
 auto OnMouseButton(MouseButton button, MouseButtonState state) {
     if (state == MouseButtonState::PRESS) {
         printf("Press mouse %d %d\n", button);
@@ -71,6 +75,7 @@ auto main(int argc, char *argv[]) -> int {
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
         .WithMousePositionCallback(&OnMouseMoved)
+        .WithMouseScrollCallback(&OnMouseScrolled)
         .WithMouseButtonCallback(&OnMouseButton);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {

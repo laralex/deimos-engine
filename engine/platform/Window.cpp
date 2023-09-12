@@ -12,6 +12,7 @@ struct WindowState {
     platform::input::InputTextCallback InputTextCallback;
     platform::input::MousePositionCallback MousePositionCallback;
     platform::input::MouseButtonCallback MouseButtonCallback;
+    platform::input::MouseScrollCallback MouseScrollCallback;
 };
 
 auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
@@ -62,12 +63,20 @@ auto TextInputCallback(GLFWwindow* window, uint32_t codepoint) {
     windowState->InputTextCallback(windowState->InputTextUtf8, codepoint);
 }
 
-auto MousePositionCallback(GLFWwindow* window, double x, double y) {
+auto MousePositionCallback(GLFWwindow* window, double windowX, double windowY) {
     auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
     if (windowState->MousePositionCallback == nullptr) {
         return;
     }
-    windowState->MousePositionCallback(x, y);
+    windowState->MousePositionCallback(windowX, windowY);
+}
+
+auto MouseScrollCallback(GLFWwindow* window, double directionX, double directionY) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MouseScrollCallback == nullptr) {
+        return;
+    }
+    windowState->MouseScrollCallback(directionX, directionY);
 }
 
 auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -157,6 +166,11 @@ auto WindowBuilder::WithMouseButtonCallback(input::MouseButtonCallback callback)
     return *this;
 }
 
+auto WindowBuilder::WithMouseScrollCallback(input::MouseScrollCallback callback) -> WindowBuilder& {
+    _args.MouseScrollCallback = callback;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Height > 0 && _args.Width > 0
            && _args.GraphicalBackend == CreateWindowArgs::GraphicsBackend::VULKAN;
@@ -182,12 +196,14 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         std::move(args.InputTextCallback),
         std::move(args.MousePositionCallback),
         std::move(args.MouseButtonCallback),
+        std::move(args.MouseScrollCallback),
     };
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
     glfwSetCursorPosCallback(window, &::MousePositionCallback);
+    glfwSetScrollCallback(window, &::MouseScrollCallback);
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     return WindowHandle{window};
 }

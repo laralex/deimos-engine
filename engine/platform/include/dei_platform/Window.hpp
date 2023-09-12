@@ -26,6 +26,7 @@ struct CreateWindowArgs {
    input::InputTextCallback InputTextCallback;
    input::MousePositionCallback MousePositionCallback;
    input::MouseButtonCallback MouseButtonCallback;
+   input::MouseScrollCallback MouseScrollCallback;
 };
 
 struct WindowBuilder {
@@ -40,6 +41,7 @@ struct WindowBuilder {
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
    auto WithMousePositionCallback(input::MousePositionCallback) -> WindowBuilder&;
    auto WithMouseButtonCallback(input::MouseButtonCallback) -> WindowBuilder&;
+   auto WithMouseScrollCallback(input::MouseScrollCallback) -> WindowBuilder&;
    auto IsValid() const -> bool;
    friend auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 private:
