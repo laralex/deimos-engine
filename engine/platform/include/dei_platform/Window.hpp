@@ -22,6 +22,7 @@ struct CreateWindowArgs {
    enum class GraphicsBackend {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
    } GraphicalBackend;
+   bool TryRawMouseMotion;
    input::KeyMap KeyMap;
    input::InputTextCallback InputTextCallback;
    input::MousePositionCallback MousePositionCallback;
@@ -39,6 +40,7 @@ struct WindowBuilder {
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
+   auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
    auto WithMousePositionCallback(input::MousePositionCallback) -> WindowBuilder&;
    auto WithMouseButtonCallback(input::MouseButtonCallback) -> WindowBuilder&;
@@ -78,6 +80,8 @@ auto WindowClearInput(const WindowHandle&) -> void;
 auto WindowUndoInput(const WindowHandle&) -> void;
 auto WindowGetMousePosition(const WindowHandle&) -> dvec2;
 auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
+auto WindowSetCursorMode(const WindowHandle&, input::CursorMode mode) -> void;
+auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
 //glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform

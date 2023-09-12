@@ -69,6 +69,7 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem();
+    auto startupClockCounter = dei::platform::GetClockCounter();
     auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 time=1234567890");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
     constexpr auto WINTITLE_TIME_OFFSET = 34, WINTITLE_TIME_SIZE = 10;
@@ -78,6 +79,7 @@ auto main(int argc, char *argv[]) -> int {
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
+        .WithRawMouseMotion(true)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)
         .WithMouseButtonCallback(&OnMouseButton)
@@ -90,6 +92,15 @@ auto main(int argc, char *argv[]) -> int {
 
     dei::platform::WindowSetKeyMap(window, {
         {{KeyCode::KEY_Q, MODIFIERS_ALT}, &OnKeyboardQ},
+        {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+            using dei::platform::input::CursorMode;
+            if (state == KeyState::PRESS) {
+                bool shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
+                dei::platform::WindowSetCursorMode(window,
+                    shouldEnableCursor ? CursorMode::NORMAL : CursorMode::DISABLED
+                );
+            }
+        }},
         {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
         {{KeyCode::ANYTHING, MODIFIERS_NONE}, &OnKeyboardDefault},
         // TODO: doesn't work with BACKSPACE (-1 code)
@@ -129,7 +140,8 @@ auto main(int argc, char *argv[]) -> int {
             auto&& drawCounterStr = std::to_string(engineState.DrawCounter);
             dei::platform::SetSubstringInplace(windowTitle,
                 drawCounterStr.c_str(), WINTITLE_FRAME_OFFSET, WINTITLE_FRAME_SIZE, ' ');
-            auto&& timeSecStr = std::to_string(dei::platform::GetClockCounter() / dei::platform::GetClockFrequencyHertz());
+            auto&& timeSecStr = std::to_string(
+                (dei::platform::GetClockCounter() - startupClockCounter) / dei::platform::GetClockFrequencyHertz());
             dei::platform::SetSubstringInplace(windowTitle,
                 timeSecStr.c_str(), WINTITLE_TIME_OFFSET, WINTITLE_TIME_SIZE, ' ');
             dei::platform::WindowSetTitleUtf8(window, windowTitle.c_str());

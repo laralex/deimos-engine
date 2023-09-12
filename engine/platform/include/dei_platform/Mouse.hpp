@@ -24,6 +24,12 @@ enum class MouseButton {
    _MAX_BUTTONS = GLFW_MOUSE_BUTTON_8 + 1,
 };
 
+enum class CursorMode {
+   DISABLED = GLFW_CURSOR_DISABLED,
+   NORMAL = GLFW_CURSOR_NORMAL,
+   HIDDEN = GLFW_CURSOR_HIDDEN,
+};
+
 typedef void (*MousePositionCallback)(double windowX, double windowY);
 typedef void (*MouseScrollCallback)(double directionX, double directionY);
 typedef void (*MouseButtonCallback)(MouseButton, MouseButtonState);

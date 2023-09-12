@@ -160,6 +160,11 @@ auto WindowBuilder::WithKeymap(platform::input::KeyMap&& keymap) -> WindowBuilde
     return *this;
 }
 
+auto WindowBuilder::WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder& {
+    _args.TryRawMouseMotion = isRawMouseMotionUsed;
+    return *this;
+}
+
 auto WindowBuilder::WithInputTextCallback(input::InputTextCallback callback) -> WindowBuilder& {
     _args.InputTextCallback = callback;
     return *this;
@@ -221,7 +226,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetScrollCallback(window, &::MouseScrollCallback);
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
-
+    if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
+        glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    }
     return WindowHandle{window};
 }
 
@@ -276,4 +283,11 @@ auto WindowGetMousePosition(const WindowHandle& window, dvec2& destination) -> v
     glfwGetCursorPos(window.get(), &destination.x, &destination.y);
 }
 
+auto WindowSetCursorMode(const WindowHandle& window, input::CursorMode newMode) -> void {
+    glfwSetInputMode(window.get(), GLFW_CURSOR, static_cast<int>(newMode));
+}
+
+auto WindowGetCursorMode(const WindowHandle& window) -> input::CursorMode {
+    return static_cast<input::CursorMode>(glfwGetInputMode(window.get(), GLFW_CURSOR));
+}
 }
