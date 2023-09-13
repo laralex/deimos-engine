@@ -85,6 +85,8 @@ auto main(int argc, char *argv[]) -> int {
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
         .WithSize(800, 600)
         .WithSizeMin(200, 200)
+        .WithAspectRatioForceCurrent()
+        .WithAspectRatio(16, 9)
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
         .WithPositionCallback(&OnWindowMoved)

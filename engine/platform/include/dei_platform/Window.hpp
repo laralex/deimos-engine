@@ -23,6 +23,10 @@ struct CreateWindowArgs {
    size_t Width, Height;
    size_t WidthMin = 0, HeightMin = 0;
    size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
+   bool UseAspectRatio = false;
+   bool UseSizeAsAspectRatio = false;
+   size_t AspectNumerator = 1;
+   size_t AspectDenominator = 1;
    const char* TitleUtf8;
    enum class GraphicsBackend {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
@@ -46,6 +50,8 @@ struct WindowBuilder {
    auto WithSize(size_t width, size_t height) -> WindowBuilder&;
    auto WithSizeMin(size_t width, size_t height) -> WindowBuilder&;
    auto WithSizeMax(size_t width, size_t height) -> WindowBuilder&;
+   auto WithAspectRatioForceCurrent() -> WindowBuilder&;
+   auto WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;

@@ -180,6 +180,20 @@ auto WindowBuilder::WithSizeMax(size_t width, size_t height) -> WindowBuilder& {
     return *this;
 }
 
+auto WindowBuilder::WithAspectRatioForceCurrent() -> WindowBuilder& {
+    _args.UseAspectRatio = true;
+    _args.UseSizeAsAspectRatio = true;
+    return *this;
+}
+
+auto WindowBuilder::WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder& {
+    _args.UseAspectRatio = true;
+    _args.UseSizeAsAspectRatio = false;
+    _args.AspectNumerator = aspectNumerator;
+    _args.AspectDenominator = aspectDenominator;
+    return *this;
+}
+
 auto WindowBuilder::WithTitleUtf8(const char* titleUtf8) -> WindowBuilder& {
     _args.TitleUtf8 = titleUtf8;
     return *this;
@@ -245,6 +259,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builde
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& args) -> std::optional<WindowHandle> {
+    if (args.Width == 0 || args.Height == 0) {
+        return std::nullopt;
+    }
     switch (args.GraphicalBackend) {
         case CreateWindowArgs::GraphicsBackend::VULKAN:
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -275,11 +292,18 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
     glfwSetWindowPosCallback(window, &::WindowPositionCallback);
     glfwSetWindowSizeCallback(window, &::WindowResizeCallback);
-    glfwSetWindowSizeLimits(window, 
+    glfwSetWindowSizeLimits(window,
         args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
         args.HeightMin > 0 ? args.HeightMin : GLFW_DONT_CARE,
-        args.WidthMax < (1 << 30) ? args.WidthMax : GLFW_DONT_CARE, 
+        args.WidthMax < (1 << 30) ? args.WidthMax : GLFW_DONT_CARE,
         args.HeightMax < (1 << 30) ? args.HeightMax : GLFW_DONT_CARE);
+    if (args.UseAspectRatio) {
+        if (args.UseSizeAsAspectRatio) {
+            args.AspectNumerator = args.Width;
+            args.AspectDenominator = args.Height;
+        }
+        glfwSetWindowAspectRatio(window, args.AspectNumerator, args.AspectDenominator);
+    }
 
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
