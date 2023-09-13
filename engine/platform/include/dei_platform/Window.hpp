@@ -89,6 +89,14 @@ auto WindowGetMousePosition(const WindowHandle&) -> dvec2;
 auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
 auto WindowSetCursorMode(const WindowHandle&, input::CursorMode mode) -> void;
 auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
+
+enum class WindowSizeMode {
+   NORMAL,
+   MAXIMIZED,
+   MINIMIZED,
+};
+auto WindowSetSizeMode(const WindowHandle&, WindowSizeMode mode) -> void;
+auto WindowGetSizeMode(const WindowHandle&) -> WindowSizeMode;
 //glfwSetKeyCallback(window, key_callback);
 
 } // dei::platform

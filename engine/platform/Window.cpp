@@ -324,4 +324,28 @@ auto WindowSetCursorMode(const WindowHandle& window, input::CursorMode newMode) 
 auto WindowGetCursorMode(const WindowHandle& window) -> input::CursorMode {
     return static_cast<input::CursorMode>(glfwGetInputMode(window.get(), GLFW_CURSOR));
 }
+
+auto WindowSetSizeMode(const WindowHandle& window, WindowSizeMode mode) -> void {
+    switch (mode) {
+    case WindowSizeMode::NORMAL:
+        glfwRestoreWindow(window.get());
+        break;
+    case WindowSizeMode::MINIMIZED:
+        glfwIconifyWindow(window.get());
+        break;
+    case WindowSizeMode::MAXIMIZED:
+        glfwMaximizeWindow(window.get());
+        break;
+    }
+}
+
+auto WindowGetSizeMode(const WindowHandle& window) -> WindowSizeMode {
+    if (glfwGetWindowAttrib(window.get(), GLFW_ICONIFIED) > 0) {
+        return WindowSizeMode::MINIMIZED;
+    } else if (glfwGetWindowAttrib(window.get(), GLFW_MAXIMIZED) > 0) {
+        return WindowSizeMode::MAXIMIZED;
+    }
+    return WindowSizeMode::NORMAL;
+}
+
 }

@@ -53,12 +53,6 @@ auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void
     }
 }
 
-auto OnKeyboardQ(KeyCode key, KeyState state, const char* keyName) -> void {
-    if (state == KeyState::PRESS) {
-        printf("QQQQQQQQQQQQQQQQQQQQQQQ\n");
-    }
-}
-
 auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
     if (state == KeyState::PRESS) {
         printf("RRRRRRRRRRRRRRRRRRRRRRR\n");
@@ -106,7 +100,16 @@ auto main(int argc, char *argv[]) -> int {
     auto window = *std::move(maybeWindow);
 
     dei::platform::WindowSetKeyMap(window, {
-        {{KeyCode::KEY_Q, MODIFIERS_ALT}, &OnKeyboardQ},
+        {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+            using dei::platform::WindowSizeMode;
+            if (state == KeyState::PRESS) {
+                bool isMaximized = dei::platform::WindowGetSizeMode(window) == WindowSizeMode::MAXIMIZED;
+                dei::platform::WindowSetSizeMode(window,
+                    isMaximized ? WindowSizeMode::MINIMIZED : WindowSizeMode::MAXIMIZED
+                );
+            }
+            dei::platform::WindowSetSizeMode(window, dei::platform::WindowSizeMode::MAXIMIZED);
+        }},
         {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             using dei::platform::input::CursorMode;
             if (state == KeyState::PRESS) {
