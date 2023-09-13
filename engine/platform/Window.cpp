@@ -147,6 +147,10 @@ auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void 
     glfwSetClipboardString(NULL, textUtff8);
 }
 
+auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void {
+    glfwSwapInterval(enableVerticalSync ? 1 : 0);
+}
+
 auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
     if (window == nullptr) {
         return;

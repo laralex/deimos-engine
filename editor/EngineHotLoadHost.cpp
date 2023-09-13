@@ -110,6 +110,13 @@ auto main(int argc, char *argv[]) -> int {
             }
             dei::platform::WindowSetSizeMode(window, dei::platform::WindowSizeMode::MAXIMIZED);
         }},
+        {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+            static bool isVerticalSyncEnabled = false;
+            if (state == KeyState::PRESS) {
+                isVerticalSyncEnabled ^= 1;
+                dei::platform::SetVerticalSync(windowSystem, isVerticalSyncEnabled);
+            }
+        }},
         {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             using dei::platform::input::CursorMode;
             if (state == KeyState::PRESS) {
