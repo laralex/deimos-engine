@@ -56,6 +56,10 @@ auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
     }
 }
 
+auto OnWindowError(int code, const char* description) {
+    printf("Error GLFW: %s\n", description);
+}
+
 // args:
 // 1: install directory path (absolute)
 // 2: engine library basename (e.g. dei)
@@ -68,7 +72,7 @@ auto main(int argc, char *argv[]) -> int {
     constexpr double TICK_CAP_SECONDS = 1.0 / FPS_CAP;
 
     // make window
-    auto windowSystem = dei::platform::CreateWindowSystem();
+    auto windowSystem = dei::platform::CreateWindowSystem(&OnWindowError);
     auto startupClockCounter = dei::platform::GetClockCounter();
     auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 time=1234567890");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
@@ -157,7 +161,7 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
-        dei::platform::WindowSwapBuffers(window);
+        //dei::platform::WindowSwapBuffers(window);
         windowClosing = dei::platform::WindowIsClosing(window);
 
         auto nowSeconds = dei::platform::GetTimeSec();

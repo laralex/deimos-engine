@@ -103,8 +103,9 @@ auto MouseEntersWindowCallback(GLFWwindow* window, int entered) {
 
 namespace dei::platform {
 
-auto CreateWindowSystem() -> WindowSystemHandle {
+auto CreateWindowSystem(void (*errorCallback)(int, const char*)) -> WindowSystemHandle {
     glfwInit();
+    glfwSetErrorCallback(errorCallback);
 #if NDEBUG == 0
     printf("GLFW version: %s\n", glfwGetVersionString());
 #endif
@@ -226,6 +227,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetScrollCallback(window, &::MouseScrollCallback);
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
+
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     }

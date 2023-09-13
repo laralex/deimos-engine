@@ -9,7 +9,7 @@
 
 namespace dei::platform {
 
-auto CreateWindowSystem() -> WindowSystemHandle;
+auto CreateWindowSystem(void (*errorCallback)(int, const char*) = nullptr) -> WindowSystemHandle;
 auto PollWindowEvents(const WindowSystemHandle&) -> void;
 auto GetKeyName(input::KeyCode) -> const char*;
 auto GetClipboardUtf8(const WindowSystemHandle&) -> const char *;
