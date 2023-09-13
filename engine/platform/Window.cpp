@@ -162,9 +162,21 @@ auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
     glfwDestroyWindow(window);
 }
 
-auto WindowBuilder::WithDimensions(size_t width, size_t height) -> WindowBuilder& {
+auto WindowBuilder::WithSize(size_t width, size_t height) -> WindowBuilder& {
     _args.Width = width;
     _args.Height = height;
+    return *this;
+}
+
+auto WindowBuilder::WithSizeMin(size_t width, size_t height) -> WindowBuilder& {
+    _args.WidthMin = width;
+    _args.HeightMin = height;
+    return *this;
+}
+
+auto WindowBuilder::WithSizeMax(size_t width, size_t height) -> WindowBuilder& {
+    _args.WidthMax = width;
+    _args.HeightMax = height;
     return *this;
 }
 
@@ -263,6 +275,11 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
     glfwSetWindowPosCallback(window, &::WindowPositionCallback);
     glfwSetWindowSizeCallback(window, &::WindowResizeCallback);
+    glfwSetWindowSizeLimits(window, 
+        args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
+        args.HeightMin > 0 ? args.HeightMin : GLFW_DONT_CARE,
+        args.WidthMax < (1 << 30) ? args.WidthMax : GLFW_DONT_CARE, 
+        args.HeightMax < (1 << 30) ? args.HeightMax : GLFW_DONT_CARE);
 
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);

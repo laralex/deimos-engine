@@ -83,7 +83,8 @@ auto main(int argc, char *argv[]) -> int {
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
-        .WithDimensions(800, 600)
+        .WithSize(800, 600)
+        .WithSizeMin(200, 200)
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
         .WithPositionCallback(&OnWindowMoved)

@@ -20,8 +20,9 @@ typedef void (*WindowResizeCallback)(int widthPx, int heightPx);
 typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
 
 struct CreateWindowArgs {
-   size_t Width;
-   size_t Height;
+   size_t Width, Height;
+   size_t WidthMin = 0, HeightMin = 0;
+   size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
    const char* TitleUtf8;
    enum class GraphicsBackend {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
@@ -42,7 +43,9 @@ struct WindowBuilder {
    WindowBuilder(const WindowBuilder&) = delete;
    WindowBuilder(WindowBuilder&&) = default;
    auto operator=(WindowBuilder&&) -> WindowBuilder& = default;
-   auto WithDimensions(size_t width, size_t height) -> WindowBuilder&;
+   auto WithSize(size_t width, size_t height) -> WindowBuilder&;
+   auto WithSizeMin(size_t width, size_t height) -> WindowBuilder&;
+   auto WithSizeMax(size_t width, size_t height) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
