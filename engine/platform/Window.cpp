@@ -9,6 +9,8 @@ struct WindowState {
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
+    platform::WindowPositionCallback WindowPositionCallback;
+    platform::WindowResizeCallback WindowResizeCallback;
     platform::input::InputTextCallback InputTextCallback;
     platform::input::MousePositionCallback MousePositionCallback;
     platform::input::MouseButtonCallback MouseButtonCallback;
@@ -97,6 +99,22 @@ auto MouseEntersWindowCallback(GLFWwindow* window, int entered) {
         return;
     }
     windowState->MouseEntersWindowCallback(entered != 0);
+}
+
+auto WindowPositionCallback(GLFWwindow* window, int leftUpCornerX, int leftUpCornerY) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MouseEntersWindowCallback == nullptr) {
+        return;
+    }
+    windowState->WindowPositionCallback(leftUpCornerX, leftUpCornerY);
+}
+
+auto WindowResizeCallback(GLFWwindow* window, int widthPx, int heightPx) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->MouseEntersWindowCallback == nullptr) {
+        return;
+    }
+    windowState->WindowResizeCallback(widthPx, heightPx);
 }
 
 } // namespace
@@ -191,6 +209,16 @@ auto WindowBuilder::WithMouseEntersWindowCallback(input::MouseEntersWindowCallba
     return *this;
 }
 
+auto WindowBuilder::WithPositionCallback(WindowPositionCallback callback) -> WindowBuilder& {
+    _args.WindowPositionCallback = callback;
+    return *this;
+}
+
+auto WindowBuilder::WithResizeCallback(WindowResizeCallback callback) -> WindowBuilder& {
+    _args.WindowResizeCallback = callback;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Height > 0 && _args.Width > 0
            && _args.GraphicalBackend == CreateWindowArgs::GraphicsBackend::VULKAN;
@@ -209,16 +237,18 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             // TODO: assert / panic
             break;
     }
-    auto* windowState = new WindowState{
-        windowSystem,
-        std::move(args.KeyMap),
-        std::string{},
-        std::move(args.InputTextCallback),
-        std::move(args.MousePositionCallback),
-        std::move(args.MouseButtonCallback),
-        std::move(args.MouseScrollCallback),
-        std::move(args.MouseEntersWindowCallback),
-    };
+    auto* windowState = new WindowState{};
+    windowState->WindowSystem = windowSystem;
+    windowState->KeyMap = std::move(args.KeyMap);
+    windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
+    windowState->WindowResizeCallback = std::move(args.WindowResizeCallback);
+    windowState->InputTextUtf8 = std::string{};
+    windowState->InputTextCallback = std::move(args.InputTextCallback);
+    windowState->MousePositionCallback = std::move(args.MousePositionCallback);
+    windowState->MouseButtonCallback = std::move(args.MouseButtonCallback);
+    windowState->MouseScrollCallback = std::move(args.MouseScrollCallback);
+    windowState->MouseEntersWindowCallback = std::move(args.MouseEntersWindowCallback);
+
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
@@ -227,6 +257,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetScrollCallback(window, &::MouseScrollCallback);
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
+    glfwSetWindowPosCallback(window, &::WindowPositionCallback);
+    glfwSetWindowSizeCallback(window, &::WindowResizeCallback);
 
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);

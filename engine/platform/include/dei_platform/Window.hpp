@@ -15,6 +15,9 @@ auto GetKeyName(input::KeyCode) -> const char*;
 auto GetClipboardUtf8(const WindowSystemHandle&) -> const char *;
 auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void;
 
+typedef void (*WindowResizeCallback)(int widthPx, int heightPx);
+typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
+
 struct CreateWindowArgs {
    size_t Width;
    size_t Height;
@@ -23,6 +26,8 @@ struct CreateWindowArgs {
       VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
    } GraphicalBackend;
    bool TryRawMouseMotion;
+   WindowResizeCallback WindowResizeCallback;
+   WindowPositionCallback WindowPositionCallback;
    input::KeyMap KeyMap;
    input::InputTextCallback InputTextCallback;
    input::MousePositionCallback MousePositionCallback;
@@ -41,6 +46,8 @@ struct WindowBuilder {
    auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
+   auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
+   auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
    auto WithMousePositionCallback(input::MousePositionCallback) -> WindowBuilder&;
    auto WithMouseButtonCallback(input::MouseButtonCallback) -> WindowBuilder&;

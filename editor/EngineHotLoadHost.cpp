@@ -20,6 +20,15 @@ auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) 
     std::cout << currentInputUtf8 << '\n';
 }
 
+auto OnWindowResized(int newWidthPx, int newHeightPx) {
+    printf("New size %d %d\n", newWidthPx, newHeightPx);
+
+}
+
+auto OnWindowMoved(int leftUpCornerX, int leftUpCornerY) {
+    printf("New pos %d %d\n", leftUpCornerX, leftUpCornerY);
+}
+
 auto OnMouseMoved(double windowX, double windowY) {
     //std::cout << '(' << windowX << ',' << windowY << ")\n";
 }
@@ -83,6 +92,8 @@ auto main(int argc, char *argv[]) -> int {
         .WithDimensions(800, 600)
         .WithTitleUtf8(windowTitle.c_str())
         .WithInputTextCallback(&OnTextInput)
+        .WithPositionCallback(&OnWindowMoved)
+        .WithResizeCallback(&OnWindowResized)
         .WithRawMouseMotion(true)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)
