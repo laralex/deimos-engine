@@ -185,7 +185,7 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
-        //dei::platform::WindowSwapBuffers(window);
+        dei::platform::WindowSwapBuffers(window);
         windowClosing = dei::platform::WindowIsClosing(window);
 
         auto nowSeconds = dei::platform::GetTimeSec();

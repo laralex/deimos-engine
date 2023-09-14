@@ -9,6 +9,7 @@ struct WindowState {
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
+    bool HasContextObject; // doesn't have for Vulkan
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
     platform::input::InputTextCallback InputTextCallback;
@@ -115,6 +116,10 @@ auto WindowResizeCallback(GLFWwindow* window, int widthPx, int heightPx) {
         return;
     }
     windowState->WindowResizeCallback(widthPx, heightPx);
+}
+
+auto GetWindowState(const dei::platform::WindowHandle& window) -> WindowState* {
+    return static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
 }
 
 } // namespace
@@ -262,15 +267,16 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     if (args.Width == 0 || args.Height == 0) {
         return std::nullopt;
     }
+    auto* windowState = new WindowState{};
     switch (args.GraphicalBackend) {
         case CreateWindowArgs::GraphicsBackend::VULKAN:
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            windowState->HasContextObject = false;
             break;
         default:
             // TODO: assert / panic
             break;
     }
-    auto* windowState = new WindowState{};
     windowState->WindowSystem = windowSystem;
     windowState->KeyMap = std::move(args.KeyMap);
     windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
@@ -326,26 +332,25 @@ auto WindowSetTitleUtf8(const WindowHandle& window, const char* titleUtf8) -> vo
 }
 
 auto WindowSetKeyMap(const WindowHandle& window, platform::input::KeyMap&& keymap) -> void {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
-    windowState->KeyMap = std::move(keymap);
+    GetWindowState(window)->KeyMap = std::move(keymap);
 }
 
 auto WindowSwapBuffers(const WindowHandle& window) -> void {
-    glfwSwapBuffers(window.get());
+    if (GetWindowState(window)->HasContextObject) {
+        glfwSwapBuffers(window.get());
+    }
 }
 
 auto WindowAppendInputUtf8(const WindowHandle& window, const char* textUtf8) -> void {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
-    windowState->InputTextUtf8.append(textUtf8);
+    GetWindowState(window)->InputTextUtf8.append(textUtf8);
 }
 
 auto WindowClearInput(const WindowHandle& window) -> void {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
-    windowState->InputTextUtf8.clear();
+    GetWindowState(window)->InputTextUtf8.clear();
 }
 
 auto WindowUndoInput(const WindowHandle& window) -> void {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
+    auto* windowState = GetWindowState(window);
     if (windowState->InputTextUtf8.size() == 0) {
         return;
     }
