@@ -205,6 +205,11 @@ auto WindowBuilder::WithTitleUtf8(const char* titleUtf8) -> WindowBuilder& {
     return *this;
 }
 
+auto WindowBuilder::WithVisible(bool isVisible) -> WindowBuilder& {
+    _args.IsVisible = isVisible;
+    return *this;
+}
+
 auto WindowBuilder::WithGraphicsBackend(GraphicsBackend graphicsBackend) -> WindowBuilder& {
     _args.GraphicsBackend = graphicsBackend;
     return *this;
@@ -298,6 +303,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     windowState->MouseScrollCallback = std::move(args.MouseScrollCallback);
     windowState->MouseEntersWindowCallback = std::move(args.MouseEntersWindowCallback);
 
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_VISIBLE, args.IsVisible ? GLFW_TRUE : GLFW_FALSE);
     auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);

@@ -41,6 +41,7 @@ struct CreateWindowArgs {
    size_t AspectDenominator = 1;
    const char* TitleUtf8;
    bool TryRawMouseMotion;
+   bool IsVisible = true;
    WindowResizeCallback WindowResizeCallback;
    WindowPositionCallback WindowPositionCallback;
    input::KeyMap KeyMap;
@@ -64,6 +65,7 @@ struct WindowBuilder {
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
+   auto WithVisible(bool isVisible) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
    auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;

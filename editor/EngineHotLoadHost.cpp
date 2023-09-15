@@ -92,6 +92,7 @@ auto main(int argc, char *argv[]) -> int {
         .WithPositionCallback(&OnWindowMoved)
         .WithResizeCallback(&OnWindowResized)
         .WithRawMouseMotion(true)
+        .WithVisible(false)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)
         .WithMouseButtonCallback(&OnMouseButton)
