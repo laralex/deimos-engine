@@ -9,7 +9,8 @@ struct WindowState {
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
-    bool HasContextObject; // doesn't have for Vulkan
+    platform::GraphicsBackend GraphicsBackend;
+    bool HasContextObject;
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
     platform::input::InputTextCallback InputTextCallback;
@@ -204,8 +205,8 @@ auto WindowBuilder::WithTitleUtf8(const char* titleUtf8) -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::WithGraphicsBackend(CreateWindowArgs::GraphicsBackend graphicsBackend) -> WindowBuilder& {
-    _args.GraphicalBackend = graphicsBackend;
+auto WindowBuilder::WithGraphicsBackend(GraphicsBackend graphicsBackend) -> WindowBuilder& {
+    _args.GraphicsBackend = graphicsBackend;
     return *this;
 }
 
@@ -256,7 +257,7 @@ auto WindowBuilder::WithResizeCallback(WindowResizeCallback callback) -> WindowB
 
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Height > 0 && _args.Width > 0
-           && _args.GraphicalBackend == CreateWindowArgs::GraphicsBackend::VULKAN;
+           && _args.GraphicsBackend == GraphicsBackend::VULKAN;
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle> {
@@ -268,15 +269,24 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         return std::nullopt;
     }
     auto* windowState = new WindowState{};
-    switch (args.GraphicalBackend) {
-        case CreateWindowArgs::GraphicsBackend::VULKAN:
+    windowState->HasContextObject = false;
+    switch (args.GraphicsBackend) {
+        case GraphicsBackend::VULKAN:
+            if (glfwVulkanSupported() == false) {
+                printf("Can't use Vulkan on this device");
+                std::exit(1);
+            }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            windowState->HasContextObject = false;
             break;
         default:
+            windowState->HasContextObject = true;
+            printf("Unsupported GraphicsBackend value=%d (%s)",
+                GraphicsBackendToStr(args.GraphicsBackend));
+            std::exit(1);
             // TODO: assert / panic
             break;
     }
+    windowState->GraphicsBackend = args.GraphicsBackend;
     windowState->WindowSystem = windowSystem;
     windowState->KeyMap = std::move(args.KeyMap);
     windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
@@ -310,10 +320,10 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         }
         glfwSetWindowAspectRatio(window, args.AspectNumerator, args.AspectDenominator);
     }
-
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     }
+
     return WindowHandle{window};
 }
 
@@ -396,6 +406,18 @@ auto WindowGetSizeMode(const WindowHandle& window) -> WindowSizeMode {
         return WindowSizeMode::MAXIMIZED;
     }
     return WindowSizeMode::NORMAL;
+}
+
+auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInstance) -> std::optional<VkSurfaceKHR> {
+    if (GetWindowState(window)->GraphicsBackend != GraphicsBackend::VULKAN) {
+        return std::nullopt;
+    }
+    VkSurfaceKHR surface;
+    VkResult err = glfwCreateWindowSurface(vkInstance, window.get(), NULL, &surface);
+    if (err) {
+        return std::nullopt;
+    }
+    return surface;
 }
 
 }

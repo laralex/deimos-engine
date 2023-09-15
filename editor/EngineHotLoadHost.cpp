@@ -43,7 +43,7 @@ auto OnMouseEnteredWindow(bool entered) {
 
 auto OnMouseButton(MouseButton button, MouseButtonState state) {
     if (state == MouseButtonState::PRESS) {
-        printf("Press mouse %d %d\n", button);
+        printf("Press mouse %d\n", button);
     }
 }
 
@@ -82,7 +82,7 @@ auto main(int argc, char *argv[]) -> int {
     constexpr auto WINTITLE_TIME_OFFSET = 34, WINTITLE_TIME_SIZE = 10;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
-        .WithGraphicsBackend(dei::platform::CreateWindowArgs::GraphicsBackend::VULKAN)
+        .WithGraphicsBackend(dei::platform::GraphicsBackend::VULKAN)
         .WithSize(800, 600)
         .WithSizeMin(200, 200)
         .WithAspectRatioForceCurrent()

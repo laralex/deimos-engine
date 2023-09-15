@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#define stringify( name ) # name
+
 #if defined(_WIN32)
 #define DEI_WINDOWS 1
 #elif defined(__linux__)

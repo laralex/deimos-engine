@@ -19,7 +19,19 @@ auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void
 typedef void (*WindowResizeCallback)(int widthPx, int heightPx);
 typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
 
+enum class GraphicsBackend {
+   VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
+};
+constexpr const char* GraphicsBackendToStr(GraphicsBackend backend) {
+   switch (backend) {
+      case GraphicsBackend::VULKAN: return stringify(GraphicsBackend::VULKAN);
+   }
+   printf("Unreachable code reached: GraphicsBackendToStr on value %d", static_cast<int>(backend));
+   std::exit(1);
+};
+
 struct CreateWindowArgs {
+   GraphicsBackend GraphicsBackend;
    size_t Width, Height;
    size_t WidthMin = 0, HeightMin = 0;
    size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
@@ -28,9 +40,6 @@ struct CreateWindowArgs {
    size_t AspectNumerator = 1;
    size_t AspectDenominator = 1;
    const char* TitleUtf8;
-   enum class GraphicsBackend {
-      VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
-   } GraphicalBackend;
    bool TryRawMouseMotion;
    WindowResizeCallback WindowResizeCallback;
    WindowPositionCallback WindowPositionCallback;
@@ -53,7 +62,7 @@ struct WindowBuilder {
    auto WithAspectRatioForceCurrent() -> WindowBuilder&;
    auto WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
-   auto WithGraphicsBackend(CreateWindowArgs::GraphicsBackend) -> WindowBuilder&;
+   auto WithGraphicsBackend(GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
@@ -99,6 +108,7 @@ auto WindowGetMousePosition(const WindowHandle&) -> dvec2;
 auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
 auto WindowSetCursorMode(const WindowHandle&, input::CursorMode mode) -> void;
 auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
+auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::optional<VkSurfaceKHR>;
 
 enum class WindowSizeMode {
    NORMAL,
