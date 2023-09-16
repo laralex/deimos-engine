@@ -3,6 +3,7 @@
 #include "Prelude.hpp"
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
+#include "Monitor.hpp"
 
 #include <memory>
 #include <optional>
@@ -32,26 +33,34 @@ constexpr const char* GraphicsBackendToStr(GraphicsBackend backend) {
    std::exit(1);
 };
 
+enum class FullscreenMode {
+   FULLSCREEN,
+   WINDOWED,
+   WINDOWED_BORDERLESS
+};
+
 struct CreateWindowArgs {
    GraphicsBackend GraphicsBackend;
-   size_t Width, Height;
+   isize2 Size = { 800, 600 };
    size_t WidthMin = 0, HeightMin = 0;
    size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
    bool UseAspectRatio = false;
    bool UseSizeAsAspectRatio = false;
    size_t AspectNumerator = 1;
    size_t AspectDenominator = 1;
-   const char* TitleUtf8;
-   bool TryRawMouseMotion;
+   const char* TitleUtf8 = "";
+   bool TryRawMouseMotion = false;
    bool IsVisible = true;
-   WindowResizeCallback WindowResizeCallback;
-   WindowPositionCallback WindowPositionCallback;
-   input::KeyMap KeyMap;
-   input::InputTextCallback InputTextCallback;
-   input::MousePositionCallback MousePositionCallback;
-   input::MouseButtonCallback MouseButtonCallback;
-   input::MouseScrollCallback MouseScrollCallback;
-   input::MouseEntersWindowCallback MouseEntersWindowCallback;
+   FullscreenMode FullscreenMode = FullscreenMode::WINDOWED;
+   MonitorHandle Monitor = nullptr;
+   WindowResizeCallback WindowResizeCallback = nullptr;
+   WindowPositionCallback WindowPositionCallback = nullptr;
+   input::KeyMap KeyMap = {};
+   input::InputTextCallback InputTextCallback = nullptr;
+   input::MousePositionCallback MousePositionCallback = nullptr;
+   input::MouseButtonCallback MouseButtonCallback = nullptr;
+   input::MouseScrollCallback MouseScrollCallback = nullptr;
+   input::MouseEntersWindowCallback MouseEntersWindowCallback = nullptr;
 };
 
 struct WindowBuilder {
@@ -68,6 +77,9 @@ struct WindowBuilder {
    auto WithGraphicsBackend(GraphicsBackend) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithVisible(bool isVisible) -> WindowBuilder&;
+   auto WithFullscreen(const MonitorHandle&) -> WindowBuilder&;
+   auto WithWindowed() -> WindowBuilder&;
+   auto WithWindowedBorderless() -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
    auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;
@@ -103,6 +115,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& bui
 auto WindowSetTitleUtf8(const WindowHandle&, const char* titleUtf8) -> void;
 auto WindowIsClosing(const WindowHandle&) -> bool;
 auto WindowGetSize(const WindowHandle&) -> isize2;
+auto WindowSetSize(const WindowHandle&, isize2 size) -> void;
 auto WindowSetKeyMap(const WindowHandle&, input::KeyMap&&) -> void;
 auto WindowSwapBuffers(const WindowHandle&) -> void;
 auto WindowAppendInputUtf8(const WindowHandle&, const char* textUtf8) -> void;
@@ -115,6 +128,10 @@ auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
 auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::optional<VkSurfaceKHR>;
 auto WindowBindToThread(const WindowHandle&) -> void;
 auto WindowUnbindFromThread(const WindowHandle&) -> void;
+auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&) -> void;
+auto WindowToWindowed(const WindowHandle&) -> void;
+auto WindowToWindowedBorderless(const WindowHandle&) -> void;
+auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorHandle&) -> void;
 
 enum class WindowSizeMode {
    NORMAL,

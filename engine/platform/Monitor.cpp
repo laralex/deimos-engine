@@ -12,7 +12,7 @@ auto MonitorQueryAll(const WindowSystemHandle&) -> std::vector<MonitorHandle> {
    return std::vector<MonitorHandle>{monitorsArray, monitorsArray + numOfMonitors};
 }
 
-auto MonitorQueryInfo(const WindowSystemHandle&, const MonitorHandle monitor) -> std::optional<MonitorInfo> {
+auto MonitorQueryInfo(const WindowSystemHandle&, const MonitorHandle& monitor) -> std::optional<MonitorInfo> {
    if (monitor == nullptr) {
       return std::nullopt;
    }

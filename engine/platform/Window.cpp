@@ -6,6 +6,8 @@ namespace {
 using namespace dei;
 
 struct WindowState {
+    platform::isize2 Size;
+    platform::isize2 DesktopResolution;
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
@@ -169,8 +171,7 @@ auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
 }
 
 auto WindowBuilder::WithSize(size_t width, size_t height) -> WindowBuilder& {
-    _args.Width = width;
-    _args.Height = height;
+    _args.Size = { (int)width, (int)height };
     return *this;
 }
 
@@ -260,8 +261,29 @@ auto WindowBuilder::WithResizeCallback(WindowResizeCallback callback) -> WindowB
     return *this;
 }
 
+auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor) -> WindowBuilder& {
+    if (monitor == nullptr) {
+        return WithWindowed();
+    }
+    _args.Monitor = monitor;
+    _args.FullscreenMode = FullscreenMode::FULLSCREEN;
+    return *this;
+}
+
+auto WindowBuilder::WithWindowed() -> WindowBuilder& {
+    _args.Monitor = nullptr;
+    _args.FullscreenMode = FullscreenMode::WINDOWED;
+    return *this;
+}
+
+auto WindowBuilder::WithWindowedBorderless() -> WindowBuilder& {
+    _args.Monitor = nullptr;
+    _args.FullscreenMode = FullscreenMode::WINDOWED_BORDERLESS;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
-    return _args.Height > 0 && _args.Width > 0
+    return _args.Size.width > 0 && _args.Size.height > 0
            && _args.GraphicsBackend == GraphicsBackend::VULKAN;
 }
 
@@ -270,7 +292,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builde
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& args) -> std::optional<WindowHandle> {
-    if (args.Width == 0 || args.Height == 0) {
+    if (args.Size.width == 0 || args.Size.height == 0) {
         return std::nullopt;
     }
     auto* windowState = new WindowState{};
@@ -292,6 +314,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             // TODO: assert / panic
             break;
     }
+    auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
+    windowState->DesktopResolution = isize2 { primaryVideoMode->width, primaryVideoMode->height };
+    windowState->Size = args.Size;
     windowState->GraphicsBackend = args.GraphicsBackend;
     windowState->WindowSystem = windowSystem;
     windowState->KeyMap = std::move(args.KeyMap);
@@ -306,7 +331,13 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
 
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_VISIBLE, args.IsVisible ? GLFW_TRUE : GLFW_FALSE);
-    auto* window = glfwCreateWindow(args.Width, args.Height, args.TitleUtf8, nullptr, nullptr);
+    glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
+
+    auto* window = glfwCreateWindow(
+        args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
@@ -323,8 +354,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         args.HeightMax < (1 << 30) ? args.HeightMax : GLFW_DONT_CARE);
     if (args.UseAspectRatio) {
         if (args.UseSizeAsAspectRatio) {
-            args.AspectNumerator = args.Width;
-            args.AspectDenominator = args.Height;
+            args.AspectNumerator = args.Size.width;
+            args.AspectDenominator = args.Size.height;
         }
         glfwSetWindowAspectRatio(window, args.AspectNumerator, args.AspectDenominator);
     }
@@ -333,6 +364,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     }
     auto windowHandle = WindowHandle{window};
     WindowBindToThread(windowHandle);
+    WindowSetFullscreenMode(windowHandle, args.FullscreenMode, args.Monitor);
     return std::move(windowHandle);
 }
 
@@ -344,6 +376,10 @@ auto WindowGetSize(const WindowHandle& window) -> isize2 {
     auto size = isize2{};
     glfwGetWindowSize(window.get(), &size.width, &size.height);
     return size;
+}
+
+auto WindowSetSize(const WindowHandle& window, isize2 size) -> void {
+    glfwSetWindowSize(window.get(), size.width, size.height);
 }
 
 auto WindowSetTitleUtf8(const WindowHandle& window, const char* titleUtf8) -> void {
@@ -438,6 +474,41 @@ auto WindowBindToThread(const WindowHandle& window) -> void {
 
 auto WindowUnbindFromThread(const WindowHandle& window) -> void {
     glfwMakeContextCurrent(NULL);
+}
+
+auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor) -> void {
+    if (monitor == nullptr) {
+        return;
+    }
+    auto videoMode = glfwGetVideoMode(monitor);
+    glfwSetWindowMonitor(window.get(), monitor, 0, 0,
+        videoMode->width, videoMode->height, videoMode->refreshRate);
+}
+
+auto WindowToWindowed(const WindowHandle& window) -> void {
+    auto windowSize = GetWindowState(window)->Size;
+    glfwSetWindowMonitor(window.get(), nullptr, 0, 0,
+        windowSize.width, windowSize.height, 0);
+}
+
+auto WindowToWindowedBorderless(const WindowHandle& window) -> void {
+    auto desktopResolution = GetWindowState(window)->DesktopResolution;
+    glfwSetWindowMonitor(window.get(), nullptr, 0, 0,
+        desktopResolution.width, desktopResolution.height, 0);
+}
+
+auto WindowSetFullscreenMode(const WindowHandle& window, FullscreenMode fullscreenMode, const MonitorHandle& monitor) -> void {
+    switch (fullscreenMode) {
+        case FullscreenMode::FULLSCREEN:
+            WindowToFullscreen(window, monitor);
+            break;
+        case FullscreenMode::WINDOWED:
+            WindowToWindowed(window);
+            break;
+        case FullscreenMode::WINDOWED_BORDERLESS:
+            WindowToWindowedBorderless(window);
+            break;
+    }
 }
 
 }

@@ -78,9 +78,9 @@ auto main(int argc, char *argv[]) -> int {
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem(&OnWindowError);
 
-    auto monitor = dei::platform::MonitorQueryPrimary(windowSystem);
-    assert(monitor != nullptr);
-    auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, monitor);
+    auto primaryMonitor = dei::platform::MonitorQueryPrimary(windowSystem);
+    assert(primaryMonitor != nullptr);
+    auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, primaryMonitor);
 
     printf("Monitor info: %s (size millimeters %dx%d)\n", monitorInfo.Name,
         monitorInfo.WorkareaSize.width, monitorInfo.WorkareaSize.height);
@@ -95,6 +95,8 @@ auto main(int argc, char *argv[]) -> int {
     auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 time=1234567890");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
     constexpr auto WINTITLE_TIME_OFFSET = 34, WINTITLE_TIME_SIZE = 10;
+
+    dei::platform::FullscreenMode windowFullscreenMode = dei::platform::FullscreenMode::WINDOWED;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::GraphicsBackend::VULKAN)
@@ -105,61 +107,56 @@ auto main(int argc, char *argv[]) -> int {
         .WithPositionCallback(&OnWindowMoved)
         .WithResizeCallback(&OnWindowResized)
         .WithRawMouseMotion(true)
+        .WithFullscreen(windowFullscreenMode == dei::platform::FullscreenMode::FULLSCREEN ? primaryMonitor : nullptr)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)
         .WithMouseButtonCallback(&OnMouseButton)
         .WithMouseEntersWindowCallback(&OnMouseEnteredWindow);
     auto maybeWindow = dei::platform::CreateWindow(windowSystem, std::move(windowBuilder));
     if (maybeWindow == std::nullopt) {
+        printf("Window creation failed");
         exit(1);
     }
     auto window = *std::move(maybeWindow);
 
     dei::platform::WindowSetKeyMap(window, {
         {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
-            using dei::platform::WindowSizeMode;
-            if (state == KeyState::PRESS) {
-                bool isMaximized = dei::platform::WindowGetSizeMode(window) == WindowSizeMode::MAXIMIZED;
-                dei::platform::WindowSetSizeMode(window,
-                    isMaximized ? WindowSizeMode::MINIMIZED : WindowSizeMode::MAXIMIZED
-                );
-            }
-            dei::platform::WindowSetSizeMode(window, dei::platform::WindowSizeMode::MAXIMIZED);
+            using dei::platform::FullscreenMode;
+            if (state != KeyState::PRESS) return;
+            auto nextFullscreenMode = static_cast<FullscreenMode>(
+                (static_cast<int>(windowFullscreenMode) + 1) % 3);
+            dei::platform::WindowSetFullscreenMode(window, nextFullscreenMode, primaryMonitor);
+            windowFullscreenMode = nextFullscreenMode;
         }},
         {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             static bool isVerticalSyncEnabled = false;
-            if (state == KeyState::PRESS) {
-                isVerticalSyncEnabled ^= 1;
-                dei::platform::SetVerticalSync(windowSystem, isVerticalSyncEnabled);
-            }
+            if (state != KeyState::PRESS) return;
+            isVerticalSyncEnabled ^= 1;
+            dei::platform::SetVerticalSync(windowSystem, isVerticalSyncEnabled);
         }},
         {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             using dei::platform::input::CursorMode;
-            if (state == KeyState::PRESS) {
-                bool shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
-                dei::platform::WindowSetCursorMode(window,
-                    shouldEnableCursor ? CursorMode::NORMAL : CursorMode::DISABLED
-                );
-            }
+            if (state != KeyState::PRESS) return;
+            bool shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
+            dei::platform::WindowSetCursorMode(window,
+                shouldEnableCursor ? CursorMode::NORMAL : CursorMode::DISABLED
+            );
         }},
         {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
         {{KeyCode::ANYTHING, MODIFIERS_NONE}, &OnKeyboardDefault},
         // TODO: doesn't work with BACKSPACE (-1 code)
         {{KeyCode::BACKSPACE, MODIFIERS_CTRL}, [&](KeyCode key, KeyState state, const char* keyName){
-            if (state == KeyState::PRESS) {
-                dei::platform::WindowClearInput(window);
-            }
+            if (state != KeyState::PRESS) return;
+            dei::platform::WindowClearInput(window);
         }},
         {{KeyCode::BACKSPACE, MODIFIERS_NONE}, [&](KeyCode key, KeyState state, const char* keyName){
-            if (state == KeyState::PRESS) {
-                dei::platform::WindowUndoInput(window);
-            }
+            if (state != KeyState::PRESS) return;
+            dei::platform::WindowUndoInput(window);
         }},
         {{KeyCode::INSERT, MODIFIERS_SHIFT}, [&](KeyCode key, KeyState state, const char* keyName){
-            if (state == KeyState::PRESS) {
-                auto* clipboard = dei::platform::GetClipboardUtf8(windowSystem);
-                dei::platform::WindowAppendInputUtf8(window, clipboard);
-            }
+            if (state != KeyState::PRESS) return;
+            auto* clipboard = dei::platform::GetClipboardUtf8(windowSystem);
+            dei::platform::WindowAppendInputUtf8(window, clipboard);
         }},
     });
 

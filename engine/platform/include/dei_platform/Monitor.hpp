@@ -26,7 +26,7 @@ struct MonitorInfo {
 
 auto MonitorQueryPrimary(const WindowSystemHandle&) -> MonitorHandle;
 auto MonitorQueryAll(const WindowSystemHandle&) -> std::vector<MonitorHandle>;
-auto MonitorQueryInfo(const WindowSystemHandle&, const MonitorHandle) -> std::optional<MonitorInfo>;
+auto MonitorQueryInfo(const WindowSystemHandle&, const MonitorHandle&) -> std::optional<MonitorInfo>;
 auto MonitorSetGamma(const WindowSystemHandle&, const MonitorHandle& monitor, float gamma) -> void;
 
 }
