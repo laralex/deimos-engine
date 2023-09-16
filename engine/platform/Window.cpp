@@ -504,7 +504,9 @@ auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor
 
 auto WindowToWindowed(const WindowHandle& window) -> void {
     auto windowSize = GetWindowState(window)->Size;
-    glfwSetWindowMonitor(window.get(), nullptr, 0, 0,
+    ivec2 windowPos;
+    glfwGetWindowPos(window.get(), &windowPos.x, &windowPos.y);
+    glfwSetWindowMonitor(window.get(), nullptr, windowPos.x, windowPos.y,
         windowSize.width, windowSize.height, 0);
 }
 
