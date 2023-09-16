@@ -146,6 +146,12 @@ auto main(int argc, char *argv[]) -> int {
             dei::platform::WindowSetVisible(window,
                 !dei::platform::WindowIsVisible(window));
         }},
+        {{KeyCode::KEY_O, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+            if (state != KeyState::PRESS) return;
+            float currentOpacity = dei::platform::WindowGetOpacity(window);
+            dei::platform::WindowSetOpacity(window,
+                currentOpacity >= 1.0f ? 0.5f : 1.0f );
+        }},
         {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             static bool isVerticalSyncEnabled = false;
             if (state != KeyState::PRESS) return;

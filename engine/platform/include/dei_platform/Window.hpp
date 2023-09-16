@@ -54,6 +54,8 @@ struct CreateWindowArgs {
    bool TryRawMouseMotion = false;
    bool IsVisible = true;
    bool IsFocused = true;
+   float Opacity01 = 1.0f;
+   bool IsTransparentFramebuffer = false;
    FullscreenMode FullscreenMode = FullscreenMode::WINDOWED;
    MonitorHandle Monitor = nullptr;
    WindowResizeCallback WindowResizeCallback = nullptr;
@@ -87,6 +89,8 @@ struct WindowBuilder {
    auto WithWindowedBorderless() -> WindowBuilder&;
    auto WithFocus(bool isWindowFocused) -> WindowBuilder&;
    auto WithFocusCallback(WindowFocusedCallback) -> WindowBuilder&;
+   auto WithOpacity(float opacity01) -> WindowBuilder&;
+   auto WithTransparentFramebuffer(bool isTransparent) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
    auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;
@@ -144,6 +148,8 @@ auto WindowSetVisible(const WindowHandle&, bool makeVisible) -> void;
 auto WindowIsVisible(const WindowHandle&) -> bool;
 auto WindowIsFocused(const WindowHandle&) -> bool;
 auto WindowRequestAttention(const WindowHandle&) -> void;
+auto WindowSetOpacity(const WindowHandle&, float opacity01) -> void;
+auto WindowGetOpacity(const WindowHandle& window) -> float;
 
 enum class WindowSizeMode {
    NORMAL,

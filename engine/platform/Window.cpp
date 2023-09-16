@@ -319,6 +319,17 @@ auto WindowBuilder::WithWindowedBorderless() -> WindowBuilder& {
     return *this;
 }
 
+auto WindowBuilder::WithOpacity(float opacity01) -> WindowBuilder& {
+    _args.Opacity01 = std::clamp(opacity01, 0.0f, 1.0f);
+    _args.IsTransparentFramebuffer = false;
+    return *this;
+}
+
+auto WindowBuilder::WithTransparentFramebuffer(bool isTransparent) -> WindowBuilder& {
+    _args.IsTransparentFramebuffer = isTransparent;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Size.width > 0 && _args.Size.height > 0
            && _args.GraphicsBackend == GraphicsBackend::VULKAN;
@@ -377,6 +388,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     // FIXME: investigate why it still steals focus when passing FALSE
     glfwWindowHint(GLFW_FOCUSED, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer ? GLFW_TRUE : GLFW_FALSE);
 
     auto* window = glfwCreateWindow(
         args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
@@ -408,6 +420,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     }
     auto windowHandle = WindowHandle{window};
     WindowBindToThread(windowHandle);
+    WindowSetOpacity(windowHandle, args.Opacity01);
     return std::move(windowHandle);
 }
 
@@ -578,4 +591,16 @@ auto WindowIsFocused(const WindowHandle& window) -> bool {
 auto WindowRequestAttention(const WindowHandle& window) -> void {
     glfwRequestWindowAttention(window.get());
 }
+
+auto WindowSetOpacity(const WindowHandle& window, float opacity01) -> void {
+    if (glfwGetWindowAttrib(window.get(), GLFW_TRANSPARENT_FRAMEBUFFER)) {
+        return;
+    }
+    glfwSetWindowOpacity(window.get(), opacity01);
+}
+
+auto WindowGetOpacity(const WindowHandle& window) -> float {
+    return glfwGetWindowOpacity(window.get());
+}
+
 }
