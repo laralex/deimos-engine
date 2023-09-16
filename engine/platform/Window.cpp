@@ -361,7 +361,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetMouseButtonCallback(window, &::MouseButtonCallback);
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
     glfwSetWindowPosCallback(window, &::WindowPositionCallback);
-    glfwSetWindowSizeCallback(window, &::WindowResizeCallback);
+    glfwSetFramebufferSizeCallback(window, &::WindowResizeCallback);
     glfwSetWindowCloseCallback(window, &::WindowClosingCallback);
     glfwSetWindowSizeLimits(window,
         args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
