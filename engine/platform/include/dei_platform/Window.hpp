@@ -143,6 +143,7 @@ auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorH
 auto WindowSetVisible(const WindowHandle&, bool makeVisible) -> void;
 auto WindowIsVisible(const WindowHandle&) -> bool;
 auto WindowIsFocused(const WindowHandle&) -> bool;
+auto WindowRequestAttention(const WindowHandle&) -> void;
 
 enum class WindowSizeMode {
    NORMAL,

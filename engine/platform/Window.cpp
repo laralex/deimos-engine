@@ -575,4 +575,7 @@ auto WindowIsFocused(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED) == GLFW_TRUE;
 }
 
+auto WindowRequestAttention(const WindowHandle& window) -> void {
+    glfwRequestWindowAttention(window.get());
+}
 }

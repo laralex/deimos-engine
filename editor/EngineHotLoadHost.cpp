@@ -130,6 +130,7 @@ auto main(int argc, char *argv[]) -> int {
         exit(1);
     }
     auto window = *std::move(maybeWindow);
+    dei::platform::WindowRequestAttention(window);
 
     dei::platform::WindowSetKeyMap(window, {
         {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
@@ -187,7 +188,7 @@ auto main(int argc, char *argv[]) -> int {
 
     // app loop
     auto windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
-    auto updateWindowTitleEvery = 10;
+    auto updateWindowTitleEvery = 100;
     auto beginTimeSeconds = dei::platform::GetTimeSec();
     do {
         dei::platform::PollWindowEvents(windowSystem);
