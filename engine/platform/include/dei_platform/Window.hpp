@@ -19,6 +19,7 @@ auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void
 
 typedef void (*WindowResizeCallback)(int widthPx, int heightPx);
 typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
+typedef void (*WindowClosingCallback)();
 
 enum class GraphicsBackend {
    VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
@@ -55,6 +56,7 @@ struct CreateWindowArgs {
    MonitorHandle Monitor = nullptr;
    WindowResizeCallback WindowResizeCallback = nullptr;
    WindowPositionCallback WindowPositionCallback = nullptr;
+   WindowClosingCallback WindowClosingCallback = nullptr;
    input::KeyMap KeyMap = {};
    input::InputTextCallback InputTextCallback = nullptr;
    input::MousePositionCallback MousePositionCallback = nullptr;
@@ -83,6 +85,7 @@ struct WindowBuilder {
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
    auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;
+   auto WithClosingCallback(WindowClosingCallback) -> WindowBuilder&;
    auto WithInputTextCallback(input::InputTextCallback) -> WindowBuilder&;
    auto WithMousePositionCallback(input::MousePositionCallback) -> WindowBuilder&;
    auto WithMouseButtonCallback(input::MouseButtonCallback) -> WindowBuilder&;

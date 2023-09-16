@@ -15,6 +15,7 @@ struct WindowState {
     bool HasContextObject;
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
+    platform::WindowClosingCallback WindowClosingCallback;
     platform::input::InputTextCallback InputTextCallback;
     platform::input::MousePositionCallback MousePositionCallback;
     platform::input::MouseButtonCallback MouseButtonCallback;
@@ -119,6 +120,14 @@ auto WindowResizeCallback(GLFWwindow* window, int widthPx, int heightPx) {
         return;
     }
     windowState->WindowResizeCallback(widthPx, heightPx);
+}
+
+auto WindowClosingCallback(GLFWwindow* window) {
+    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    if (windowState->WindowClosingCallback == nullptr) {
+        return;
+    }
+    windowState->WindowClosingCallback();
 }
 
 auto GetWindowState(const dei::platform::WindowHandle& window) -> WindowState* {
@@ -261,6 +270,11 @@ auto WindowBuilder::WithResizeCallback(WindowResizeCallback callback) -> WindowB
     return *this;
 }
 
+auto WindowBuilder::WithClosingCallback(WindowClosingCallback callback) -> WindowBuilder& {
+    _args.WindowClosingCallback = callback;
+    return *this;
+}
+
 auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor) -> WindowBuilder& {
     if (monitor == nullptr) {
         return WithWindowed();
@@ -322,6 +336,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     windowState->KeyMap = std::move(args.KeyMap);
     windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
     windowState->WindowResizeCallback = std::move(args.WindowResizeCallback);
+    windowState->WindowClosingCallback = std::move(args.WindowClosingCallback);
     windowState->InputTextUtf8 = std::string{};
     windowState->InputTextCallback = std::move(args.InputTextCallback);
     windowState->MousePositionCallback = std::move(args.MousePositionCallback);
@@ -347,6 +362,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetCursorEnterCallback(window, &::MouseEntersWindowCallback);
     glfwSetWindowPosCallback(window, &::WindowPositionCallback);
     glfwSetWindowSizeCallback(window, &::WindowResizeCallback);
+    glfwSetWindowCloseCallback(window, &::WindowClosingCallback);
     glfwSetWindowSizeLimits(window,
         args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
         args.HeightMin > 0 ? args.HeightMin : GLFW_DONT_CARE,

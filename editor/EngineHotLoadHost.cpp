@@ -60,6 +60,10 @@ auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
     }
 }
 
+auto OnWindowClosing() {
+    printf("GLFW Window closing\n");
+}
+
 auto OnWindowError(int code, const char* description) {
     printf("Error GLFW: %s\n", description);
 }
@@ -106,6 +110,7 @@ auto main(int argc, char *argv[]) -> int {
         .WithInputTextCallback(&OnTextInput)
         .WithPositionCallback(&OnWindowMoved)
         .WithResizeCallback(&OnWindowResized)
+        .WithClosingCallback(&OnWindowClosing)
         .WithRawMouseMotion(true)
         .WithFullscreen(windowFullscreenMode == dei::platform::FullscreenMode::FULLSCREEN ? primaryMonitor : nullptr)
         .WithMousePositionCallback(&OnMouseMoved)
