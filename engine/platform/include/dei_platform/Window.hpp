@@ -20,6 +20,7 @@ auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void
 typedef void (*WindowResizeCallback)(int widthPx, int heightPx);
 typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
 typedef void (*WindowClosingCallback)();
+typedef void (*WindowFocusedCallback)(bool isFocused);
 
 enum class GraphicsBackend {
    VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
@@ -52,11 +53,13 @@ struct CreateWindowArgs {
    const char* TitleUtf8 = "";
    bool TryRawMouseMotion = false;
    bool IsVisible = true;
+   bool IsFocused = true;
    FullscreenMode FullscreenMode = FullscreenMode::WINDOWED;
    MonitorHandle Monitor = nullptr;
    WindowResizeCallback WindowResizeCallback = nullptr;
    WindowPositionCallback WindowPositionCallback = nullptr;
    WindowClosingCallback WindowClosingCallback = nullptr;
+   WindowFocusedCallback WindowFocusedCallback = nullptr;
    input::KeyMap KeyMap = {};
    input::InputTextCallback InputTextCallback = nullptr;
    input::MousePositionCallback MousePositionCallback = nullptr;
@@ -82,6 +85,8 @@ struct WindowBuilder {
    auto WithFullscreen(const MonitorHandle&) -> WindowBuilder&;
    auto WithWindowed() -> WindowBuilder&;
    auto WithWindowedBorderless() -> WindowBuilder&;
+   auto WithFocus(bool isWindowFocused) -> WindowBuilder&;
+   auto WithFocusCallback(WindowFocusedCallback) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
    auto WithResizeCallback(WindowResizeCallback) -> WindowBuilder&;
@@ -137,6 +142,7 @@ auto WindowToWindowedBorderless(const WindowHandle&) -> void;
 auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorHandle&) -> void;
 auto WindowSetVisible(const WindowHandle&, bool makeVisible) -> void;
 auto WindowIsVisible(const WindowHandle&) -> bool;
+auto WindowIsFocused(const WindowHandle&) -> bool;
 
 enum class WindowSizeMode {
    NORMAL,

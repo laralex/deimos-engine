@@ -64,6 +64,10 @@ auto OnWindowClosing() {
     printf("GLFW Window closing\n");
 }
 
+auto OnWindowFocused(bool isFocused) {
+    printf("Window focused: %d\n", isFocused);
+}
+
 auto OnWindowError(int code, const char* description) {
     printf("Error GLFW: %s\n", description);
 }
@@ -112,6 +116,8 @@ auto main(int argc, char *argv[]) -> int {
         .WithPositionCallback(&OnWindowMoved)
         .WithResizeCallback(&OnWindowResized)
         .WithClosingCallback(&OnWindowClosing)
+        .WithFocus(false)
+        .WithFocusCallback(&OnWindowFocused)
         .WithRawMouseMotion(true)
         .WithFullscreen(windowFullscreenMode == dei::platform::FullscreenMode::FULLSCREEN ? primaryMonitor : nullptr)
         .WithMousePositionCallback(&OnMouseMoved)

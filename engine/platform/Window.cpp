@@ -16,6 +16,7 @@ struct WindowState {
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
     platform::WindowClosingCallback WindowClosingCallback;
+    platform::WindowFocusedCallback WindowFocusedCallback;
     platform::input::InputTextCallback InputTextCallback;
     platform::input::MousePositionCallback MousePositionCallback;
     platform::input::MouseButtonCallback MouseButtonCallback;
@@ -28,9 +29,17 @@ auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
         || glfwGetKey(window, keyAlias) == GLFW_PRESS;
 }
 
+inline auto GetWindowState(const dei::platform::WindowHandle& window) -> WindowState* {
+    return static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
+}
+
+inline auto GetWindowState(GLFWwindow* window) -> WindowState* {
+    return static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+}
+
 auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
     using platform::input::KeyCode;
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);;
     printf("@ %d %d", key, scancode);
     auto keyCode = static_cast<KeyCode>(key);
     auto keyName = glfwGetKeyName(key, scancode);
@@ -63,7 +72,7 @@ auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 }
 
 auto TextInputCallback(GLFWwindow* window, uint32_t codepoint) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     auto isAppended = dei::platform::AppendToUtf8{}(windowState->InputTextUtf8, codepoint);
     if (!isAppended || windowState->InputTextCallback == nullptr) {
         return;
@@ -72,7 +81,7 @@ auto TextInputCallback(GLFWwindow* window, uint32_t codepoint) {
 }
 
 auto MousePositionCallback(GLFWwindow* window, double windowX, double windowY) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MousePositionCallback == nullptr) {
         return;
     }
@@ -80,7 +89,7 @@ auto MousePositionCallback(GLFWwindow* window, double windowX, double windowY) {
 }
 
 auto MouseScrollCallback(GLFWwindow* window, double directionX, double directionY) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MouseScrollCallback == nullptr) {
         return;
     }
@@ -88,7 +97,7 @@ auto MouseScrollCallback(GLFWwindow* window, double directionX, double direction
 }
 
 auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MouseButtonCallback == nullptr) {
         return;
     }
@@ -99,7 +108,7 @@ auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 }
 
 auto MouseEntersWindowCallback(GLFWwindow* window, int entered) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MouseEntersWindowCallback == nullptr) {
         return;
     }
@@ -107,7 +116,7 @@ auto MouseEntersWindowCallback(GLFWwindow* window, int entered) {
 }
 
 auto WindowPositionCallback(GLFWwindow* window, int leftUpCornerX, int leftUpCornerY) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MouseEntersWindowCallback == nullptr) {
         return;
     }
@@ -115,7 +124,7 @@ auto WindowPositionCallback(GLFWwindow* window, int leftUpCornerX, int leftUpCor
 }
 
 auto WindowResizeCallback(GLFWwindow* window, int widthPx, int heightPx) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->MouseEntersWindowCallback == nullptr) {
         return;
     }
@@ -123,15 +132,19 @@ auto WindowResizeCallback(GLFWwindow* window, int widthPx, int heightPx) {
 }
 
 auto WindowClosingCallback(GLFWwindow* window) {
-    auto* windowState = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+    auto* windowState = GetWindowState(window);
     if (windowState->WindowClosingCallback == nullptr) {
         return;
     }
     windowState->WindowClosingCallback();
 }
 
-auto GetWindowState(const dei::platform::WindowHandle& window) -> WindowState* {
-    return static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
+auto WindowFocusedCallback(GLFWwindow* window, int isFocused) {
+    auto* windowState = GetWindowState(window);
+    if (windowState->WindowFocusedCallback == nullptr) {
+        return;
+    }
+    windowState->WindowFocusedCallback(isFocused != 0);
 }
 
 } // namespace
@@ -217,6 +230,16 @@ auto WindowBuilder::WithTitleUtf8(const char* titleUtf8) -> WindowBuilder& {
 
 auto WindowBuilder::WithVisible(bool isVisible) -> WindowBuilder& {
     _args.IsVisible = isVisible;
+    return *this;
+}
+
+auto WindowBuilder::WithFocus(bool isWindowFocused) -> WindowBuilder& {
+    _args.IsFocused = isWindowFocused;
+    return *this;
+}
+
+auto WindowBuilder::WithFocusCallback(WindowFocusedCallback callback) -> WindowBuilder& {
+    _args.WindowFocusedCallback = callback;
     return *this;
 }
 
@@ -337,6 +360,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
     windowState->WindowResizeCallback = std::move(args.WindowResizeCallback);
     windowState->WindowClosingCallback = std::move(args.WindowClosingCallback);
+    windowState->WindowFocusedCallback = std::move(args.WindowFocusedCallback);
     windowState->InputTextUtf8 = std::string{};
     windowState->InputTextCallback = std::move(args.InputTextCallback);
     windowState->MousePositionCallback = std::move(args.MousePositionCallback);
@@ -350,6 +374,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
+    // FIXME: investigate why it still steals focus when passing FALSE
+    glfwWindowHint(GLFW_FOCUSED, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
 
     auto* window = glfwCreateWindow(
         args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
@@ -363,6 +390,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetWindowPosCallback(window, &::WindowPositionCallback);
     glfwSetFramebufferSizeCallback(window, &::WindowResizeCallback);
     glfwSetWindowCloseCallback(window, &::WindowClosingCallback);
+    glfwSetWindowFocusCallback(window, &::WindowFocusedCallback);
     glfwSetWindowSizeLimits(window,
         args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
         args.HeightMin > 0 ? args.HeightMin : GLFW_DONT_CARE,
@@ -380,7 +408,6 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     }
     auto windowHandle = WindowHandle{window};
     WindowBindToThread(windowHandle);
-    WindowSetFullscreenMode(windowHandle, args.FullscreenMode, args.Monitor);
     return std::move(windowHandle);
 }
 
@@ -505,6 +532,8 @@ auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor
 auto WindowToWindowed(const WindowHandle& window) -> void {
     auto windowSize = GetWindowState(window)->Size;
     ivec2 windowPos;
+    // FIXME: after first switch to fullscreen, windowPos will be zeros,
+    // i.e. it won't remember old window position
     glfwGetWindowPos(window.get(), &windowPos.x, &windowPos.y);
     glfwSetWindowMonitor(window.get(), nullptr, windowPos.x, windowPos.y,
         windowSize.width, windowSize.height, 0);
@@ -540,6 +569,10 @@ auto WindowSetVisible(const WindowHandle& window, bool makeVisible) -> void {
 
 auto WindowIsVisible(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_VISIBLE) == GLFW_TRUE;
+}
+
+auto WindowIsFocused(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED) == GLFW_TRUE;
 }
 
 }
