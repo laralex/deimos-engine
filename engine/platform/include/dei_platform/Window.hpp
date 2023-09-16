@@ -135,6 +135,8 @@ auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&) -> void;
 auto WindowToWindowed(const WindowHandle&) -> void;
 auto WindowToWindowedBorderless(const WindowHandle&) -> void;
 auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorHandle&) -> void;
+auto WindowSetVisible(const WindowHandle&, bool makeVisible) -> void;
+auto WindowIsVisible(const WindowHandle&) -> bool;
 
 enum class WindowSizeMode {
    NORMAL,

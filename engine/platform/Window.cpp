@@ -407,9 +407,10 @@ auto WindowSetKeyMap(const WindowHandle& window, platform::input::KeyMap&& keyma
 }
 
 auto WindowSwapBuffers(const WindowHandle& window) -> void {
-    if (GetWindowState(window)->HasContextObject) {
-        glfwSwapBuffers(window.get());
-    }
+    // if (GetWindowState(window)->HasContextObject == false) {
+    //     return;
+    // }
+    glfwSwapBuffers(window.get());
 }
 
 auto WindowAppendInputUtf8(const WindowHandle& window, const char* textUtf8) -> void {
@@ -525,6 +526,18 @@ auto WindowSetFullscreenMode(const WindowHandle& window, FullscreenMode fullscre
             WindowToWindowedBorderless(window);
             break;
     }
+}
+
+auto WindowSetVisible(const WindowHandle& window, bool makeVisible) -> void {
+    if (makeVisible) {
+        glfwShowWindow(window.get());
+    } else {
+        glfwHideWindow(window.get());
+    }
+}
+
+auto WindowIsVisible(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_VISIBLE) == GLFW_TRUE;
 }
 
 }

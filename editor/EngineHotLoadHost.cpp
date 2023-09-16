@@ -81,7 +81,8 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem(&OnWindowError);
-
+    // NOTE: mustn't use when benchmarking
+    dei::platform::SetVerticalSync(windowSystem, true);
     auto primaryMonitor = dei::platform::MonitorQueryPrimary(windowSystem);
     assert(primaryMonitor != nullptr);
     auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, primaryMonitor);
@@ -132,6 +133,11 @@ auto main(int argc, char *argv[]) -> int {
                 (static_cast<int>(windowFullscreenMode) + 1) % 3);
             dei::platform::WindowSetFullscreenMode(window, nextFullscreenMode, primaryMonitor);
             windowFullscreenMode = nextFullscreenMode;
+        }},
+        {{KeyCode::KEY_P, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+            if (state != KeyState::PRESS) return;
+            dei::platform::WindowSetVisible(window,
+                !dei::platform::WindowIsVisible(window));
         }},
         {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             static bool isVerticalSyncEnabled = false;
