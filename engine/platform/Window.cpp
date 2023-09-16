@@ -330,8 +330,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     }
-
-    return WindowHandle{window};
+    auto windowHandle = WindowHandle{window};
+    WindowBindToThread(windowHandle);
+    return std::move(windowHandle);
 }
 
 auto WindowIsClosing(const WindowHandle& window) -> bool {
@@ -425,6 +426,17 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
         return std::nullopt;
     }
     return surface;
+}
+
+auto WindowBindToThread(const WindowHandle& window) -> void {
+    if (GetWindowState(window)->GraphicsBackend != GraphicsBackend::OPENGL) {
+        return;
+    }
+    glfwMakeContextCurrent(window.get());
+}
+
+auto WindowUnbindFromThread(const WindowHandle& window) -> void {
+    glfwMakeContextCurrent(NULL);
 }
 
 }

@@ -21,10 +21,12 @@ typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
 
 enum class GraphicsBackend {
    VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
+   OPENGL = static_cast<int>(GraphicsApi::OPENGL_33),
 };
 constexpr const char* GraphicsBackendToStr(GraphicsBackend backend) {
    switch (backend) {
       case GraphicsBackend::VULKAN: return stringify(GraphicsBackend::VULKAN);
+      case GraphicsBackend::OPENGL: return stringify(GraphicsBackend::OPENGL);
    }
    printf("Unreachable code reached: GraphicsBackendToStr on value %d", static_cast<int>(backend));
    std::exit(1);
@@ -111,6 +113,8 @@ auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
 auto WindowSetCursorMode(const WindowHandle&, input::CursorMode mode) -> void;
 auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
 auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::optional<VkSurfaceKHR>;
+auto WindowBindToThread(const WindowHandle&) -> void;
+auto WindowUnbindFromThread(const WindowHandle&) -> void;
 
 enum class WindowSizeMode {
    NORMAL,
