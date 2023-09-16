@@ -2,6 +2,7 @@
 #include "dei_platform/Window.hpp"
 #include "dei_platform/Time.hpp"
 #include "dei_platform/Mouse.hpp"
+#include "dei_platform/Monitor.hpp"
 
 using namespace dei::platform::input;
 
@@ -76,6 +77,20 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem(&OnWindowError);
+
+    auto monitor = dei::platform::MonitorQueryPrimary(windowSystem);
+    assert(monitor != nullptr);
+    auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, monitor);
+
+    printf("Monitor info: %s (size millimeters %dx%d)\n", monitorInfo.Name,
+        monitorInfo.WorkareaSize.width, monitorInfo.WorkareaSize.height);
+    if (monitorInfo.NumVideoModes > 0) {
+        auto videoMode = monitorInfo.VideoModes[monitorInfo.NumVideoModes - 1];
+        printf("Monitor video mode: %dx%d %d Hz, bits R=%d G=%d B=%d\n",
+            videoMode.width, videoMode.height, videoMode.refreshRate,
+            videoMode.redBits, videoMode.blueBits, videoMode.greenBits);
+    }
+
     auto startupClockCounter = dei::platform::GetClockCounter();
     auto windowTitle = dei::platform::StringJoin("My window: #frame=1234567890 time=1234567890");
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;

@@ -11,7 +11,7 @@ namespace dei::platform {
 
 auto CreateWindowSystem(void (*errorCallback)(int, const char*) = nullptr) -> WindowSystemHandle;
 auto PollWindowEvents(const WindowSystemHandle&) -> void;
-auto GetKeyName(input::KeyCode) -> const char*;
+auto GetKeyName(const WindowSystemHandle&, input::KeyCode) -> const char*;
 auto GetClipboardUtf8(const WindowSystemHandle&) -> const char *;
 auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void;
 auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void;

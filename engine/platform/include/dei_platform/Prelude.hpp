@@ -30,6 +30,10 @@ struct ivec2 {
    int x, y;
 };
 
+struct vec2 {
+   float x, y;
+};
+
 struct dvec2 {
    double x, y;
 };

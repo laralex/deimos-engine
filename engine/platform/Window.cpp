@@ -141,7 +141,7 @@ auto PollWindowEvents(const WindowSystemHandle& window) -> void {
     glfwPollEvents();
 }
 
-auto GetKeyName(input::KeyCode key) -> const char* {
+auto GetKeyName(const WindowSystemHandle&, input::KeyCode key) -> const char* {
     return glfwGetKeyName(static_cast<int>(key), 0);
 }
 
@@ -286,6 +286,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         default:
             windowState->HasContextObject = true;
             printf("Unsupported GraphicsBackend value=%d (%s)",
+                args.GraphicsBackend,
                 GraphicsBackendToStr(args.GraphicsBackend));
             std::exit(1);
             // TODO: assert / panic
