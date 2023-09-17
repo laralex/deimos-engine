@@ -108,7 +108,7 @@ auto main(int argc, char *argv[]) -> int {
     dei::platform::FullscreenMode windowFullscreenMode = dei::platform::FullscreenMode::WINDOWED;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
-        .WithGraphicsBackend(dei::platform::GraphicsBackend::VULKAN)
+        .WithGraphicsBackend(dei::platform::GraphicsApi::VULKAN)
         .WithSize(800, 600)
         .WithSizeMin(200, 200)
         .WithTitleUtf8(windowTitle.c_str())
@@ -136,6 +136,20 @@ auto main(int argc, char *argv[]) -> int {
     dei::platform::WindowSetIsFocusedAfterVisible(window, true);
     dei::platform::WindowSetIsResizable(window, true);
     dei::platform::WindowSetIsDecorated(window, true);
+
+    {
+        using namespace dei::platform;
+        int major, minor, revision;
+        WindowContextGetVersion(window, major, minor, revision);
+        printf("Context info: %s ver. %d.%d.%d, %s, debug=%d, noerror=%d, forwardcompat=%d\n",
+            GraphicsApiToStr(WindowContextGetApi(window)),
+            major, minor, revision,
+            ContextCreationApiToStr(WindowContextGetCreationApi(window)),
+            WindowContextIsDebugMode(window),
+            WindowContextIsNoErrorMode(window),
+            WindowContextIsForwardCompatible(window));
+    }
+    
 
     dei::platform::WindowSetKeyMap(window, {
         {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {

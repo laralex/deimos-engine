@@ -21,9 +21,19 @@
 namespace dei::platform {
 
 enum class GraphicsApi {
-   OPENGL_33,
-   VULKAN_10,
-   DIRECTX_11
+   OPENGL = GLFW_OPENGL_API,
+   OPENGLES = GLFW_OPENGL_ES_API,
+   VULKAN,
+};
+
+constexpr const char* GraphicsApiToStr(GraphicsApi backend) {
+   switch (backend) {
+      case GraphicsApi::VULKAN: return stringify(GraphicsApi::VULKAN);
+      case GraphicsApi::OPENGL: return stringify(GraphicsApi::OPENGL);
+      case GraphicsApi::OPENGLES: return stringify(GraphicsApi::OPENGLES);
+   }
+   printf("Unreachable code reached: GraphicsApiToStr on value %d", static_cast<int>(backend));
+   std::exit(1);
 };
 
 struct ivec2 {

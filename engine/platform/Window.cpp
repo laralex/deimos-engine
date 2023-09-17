@@ -11,7 +11,7 @@ struct WindowState {
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
-    platform::GraphicsBackend GraphicsBackend;
+    platform::GraphicsApi GraphicsApi;
     bool HasContextObject;
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
@@ -243,8 +243,8 @@ auto WindowBuilder::WithFocusCallback(WindowFocusedCallback callback) -> WindowB
     return *this;
 }
 
-auto WindowBuilder::WithGraphicsBackend(GraphicsBackend graphicsBackend) -> WindowBuilder& {
-    _args.GraphicsBackend = graphicsBackend;
+auto WindowBuilder::WithGraphicsBackend(GraphicsApi graphicsBackend) -> WindowBuilder& {
+    _args.GraphicsApi = graphicsBackend;
     return *this;
 }
 
@@ -332,7 +332,7 @@ auto WindowBuilder::WithTransparentFramebuffer(bool isTransparent) -> WindowBuil
 
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Size.width > 0 && _args.Size.height > 0
-           && _args.GraphicsBackend == GraphicsBackend::VULKAN;
+           && _args.GraphicsApi == GraphicsApi::VULKAN;
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle> {
@@ -345,19 +345,26 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     }
     auto* windowState = new WindowState{};
     windowState->HasContextObject = false;
-    switch (args.GraphicsBackend) {
-        case GraphicsBackend::VULKAN:
+    switch (args.GraphicsApi) {
+        case GraphicsApi::VULKAN:
             if (glfwVulkanSupported() == false) {
-                printf("Can't use Vulkan on this device");
+                printf("Can't use Vulkan on this device\n");
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
             break;
-        default:
+        case GraphicsApi::OPENGL:
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
             windowState->HasContextObject = true;
-            printf("Unsupported GraphicsBackend value=%d (%s)",
-                args.GraphicsBackend,
-                GraphicsBackendToStr(args.GraphicsBackend));
+            break;
+        case GraphicsApi::OPENGLES:
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+            windowState->HasContextObject = true;
+            break;
+        default:
+            printf("Unsupported GraphicsApi value=%d (%s)\n",
+                args.GraphicsApi,
+                GraphicsApiToStr(args.GraphicsApi));
             std::exit(1);
             // TODO: assert / panic
             break;
@@ -365,7 +372,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
     windowState->DesktopResolution = isize2 { primaryVideoMode->width, primaryVideoMode->height };
     windowState->Size = args.Size;
-    windowState->GraphicsBackend = args.GraphicsBackend;
+    windowState->GraphicsApi = args.GraphicsApi;
     windowState->WindowSystem = windowSystem;
     windowState->KeyMap = std::move(args.KeyMap);
     windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
@@ -511,7 +518,7 @@ auto WindowGetSizeMode(const WindowHandle& window) -> WindowSizeMode {
 }
 
 auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInstance) -> std::optional<VkSurfaceKHR> {
-    if (GetWindowState(window)->GraphicsBackend != GraphicsBackend::VULKAN) {
+    if (GetWindowState(window)->GraphicsApi != GraphicsApi::VULKAN) {
         return std::nullopt;
     }
     VkSurfaceKHR surface;
@@ -523,7 +530,7 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
 }
 
 auto WindowBindToThread(const WindowHandle& window) -> void {
-    if (GetWindowState(window)->GraphicsBackend != GraphicsBackend::OPENGL) {
+    if (GetWindowState(window)->GraphicsApi != GraphicsApi::OPENGL) {
         return;
     }
     glfwMakeContextCurrent(window.get());
@@ -645,6 +652,40 @@ auto WindowSetIsFocusedAfterVisible(const WindowHandle& window, bool makeFocused
 
 auto WindowIsFocusedAfterVisible(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
+}
+
+auto WindowContextGetApi(const WindowHandle& window) -> GraphicsApi {
+    auto contextApi = glfwGetWindowAttrib(window.get(), GLFW_CLIENT_API);
+    switch (contextApi) {
+        case GLFW_OPENGL_API: return GraphicsApi::OPENGL;
+        case GLFW_OPENGL_ES_API: return GraphicsApi::OPENGL;
+        case GLFW_NO_API: return GraphicsApi::VULKAN;
+    }
+    printf("Unreachable code reached: WindowContextGetApi on value %d", static_cast<int>(contextApi));
+    std::exit(1);
+}
+
+auto WindowContextGetCreationApi(const WindowHandle& window) -> ContextCreationApi {
+    return static_cast<ContextCreationApi>(
+        glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_CREATION_API));
+}
+
+auto WindowContextGetVersion(const WindowHandle& window, int& major, int& minor, int& revision) -> void {
+    major = glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_VERSION_MAJOR);
+    minor = glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_VERSION_MINOR);
+    revision = glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_REVISION);
+}
+
+auto WindowContextIsDebugMode(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
+}
+
+auto WindowContextIsForwardCompatible(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_OPENGL_FORWARD_COMPAT);
+}
+
+auto WindowContextIsNoErrorMode(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_NO_ERROR);
 }
 
 }

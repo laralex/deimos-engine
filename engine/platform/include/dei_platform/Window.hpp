@@ -22,16 +22,19 @@ typedef void (*WindowPositionCallback)(int leftUpCornerX, int leftUpCornerY);
 typedef void (*WindowClosingCallback)();
 typedef void (*WindowFocusedCallback)(bool isFocused);
 
-enum class GraphicsBackend {
-   VULKAN = static_cast<int>(GraphicsApi::VULKAN_10),
-   OPENGL = static_cast<int>(GraphicsApi::OPENGL_33),
+enum class ContextCreationApi {
+   NATIVE = GLFW_NATIVE_CONTEXT_API,
+   OS_MESA = GLFW_OSMESA_CONTEXT_API,
+   EGL = GLFW_EGL_CONTEXT_API,
 };
-constexpr const char* GraphicsBackendToStr(GraphicsBackend backend) {
-   switch (backend) {
-      case GraphicsBackend::VULKAN: return stringify(GraphicsBackend::VULKAN);
-      case GraphicsBackend::OPENGL: return stringify(GraphicsBackend::OPENGL);
+
+constexpr const char* ContextCreationApiToStr(ContextCreationApi api) {
+   switch (api) {
+      case ContextCreationApi::NATIVE: return stringify(ContextCreationApi::NATIVE);
+      case ContextCreationApi::OS_MESA: return stringify(ContextCreationApi::OS_MESA);
+      case ContextCreationApi::EGL: return stringify(ContextCreationApi::EGL);
    }
-   printf("Unreachable code reached: GraphicsBackendToStr on value %d", static_cast<int>(backend));
+   printf("Unreachable code reached: ContextCreationApiToStr on value %d", static_cast<int>(api));
    std::exit(1);
 };
 
@@ -48,7 +51,7 @@ enum class WindowSizeMode {
 };
 
 struct CreateWindowArgs {
-   GraphicsBackend GraphicsBackend;
+   GraphicsApi GraphicsApi;
    isize2 Size = { 800, 600 };
    size_t WidthMin = 0, HeightMin = 0;
    size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
@@ -87,7 +90,7 @@ struct WindowBuilder {
    auto WithAspectRatioForceCurrent() -> WindowBuilder&;
    auto WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
-   auto WithGraphicsBackend(GraphicsBackend) -> WindowBuilder&;
+   auto WithGraphicsBackend(GraphicsApi) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithVisible(bool isVisible) -> WindowBuilder&;
    auto WithFullscreen(const MonitorHandle&) -> WindowBuilder&;
@@ -169,6 +172,15 @@ auto WindowSetIsFocusedAfterVisible(const WindowHandle&, bool makeFocusedAfterVi
 auto WindowIsFocusedAfterVisible(const WindowHandle&) -> bool;
 auto WindowSetSizeMode(const WindowHandle&, WindowSizeMode mode) -> void;
 auto WindowGetSizeMode(const WindowHandle&) -> WindowSizeMode;
-//glfwSetKeyCallback(window, key_callback);
+
+auto WindowContextGetApi(const WindowHandle&) -> GraphicsApi;
+auto WindowContextGetCreationApi(const WindowHandle&) -> ContextCreationApi;
+auto WindowContextGetVersion(const WindowHandle&, int&, int&, int&) -> void;
+auto WindowContextIsDebugMode(const WindowHandle&) -> bool;
+auto WindowContextIsForwardCompatible(const WindowHandle&) -> bool;
+auto WindowContextIsNoErrorMode(const WindowHandle&) -> bool;
+
+// TODO: also there are GLFW_OPENGL_PROFILE, GLFW_CONTEXT_RELEASE_BEHAVIOR, 
+// GLFW_CONTEXT_ROBUSTNESS attributes
 
 } // dei::platform
