@@ -351,6 +351,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
                 printf("Can't use Vulkan on this device\n");
                 std::exit(1);
             }
+            // FIXME: need to debug, Opengl 4.6 still loads
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
             break;
         case GraphicsApi::OPENGL:
@@ -658,7 +659,7 @@ auto WindowContextGetApi(const WindowHandle& window) -> GraphicsApi {
     auto contextApi = glfwGetWindowAttrib(window.get(), GLFW_CLIENT_API);
     switch (contextApi) {
         case GLFW_OPENGL_API: return GraphicsApi::OPENGL;
-        case GLFW_OPENGL_ES_API: return GraphicsApi::OPENGL;
+        case GLFW_OPENGL_ES_API: return GraphicsApi::OPENGLES;
         case GLFW_NO_API: return GraphicsApi::VULKAN;
     }
     printf("Unreachable code reached: WindowContextGetApi on value %d", static_cast<int>(contextApi));
