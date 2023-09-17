@@ -106,7 +106,9 @@ auto main(int argc, char *argv[]) -> int {
     dei::platform::FullscreenMode windowFullscreenMode = dei::platform::FullscreenMode::WINDOWED;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
-        .WithGraphicsBackend(dei::platform::GraphicsApi::VULKAN)
+        .WithVulkan(1, 3)
+        .WithOpenGL(3, 3, dei::platform::ContextCreationApi::EGL)
+        .WithOpenGLSettings(dei::platform::OpenGlProfile::COMPATIBLE, false, true)
         .WithSize(800, 600)
         .WithSizeMin(200, 200)
         .WithTitleUtf8(windowTitle.c_str())

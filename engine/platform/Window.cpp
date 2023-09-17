@@ -267,8 +267,36 @@ auto WindowBuilder::WithFocusCallback(WindowFocusedCallback callback) -> WindowB
     return *this;
 }
 
-auto WindowBuilder::WithGraphicsBackend(GraphicsApi graphicsBackend) -> WindowBuilder& {
-    _args.GraphicsApi = graphicsBackend;
+auto WindowBuilder::WithVulkan(size_t versionMajor, size_t versionMinor) -> WindowBuilder& {
+    _args.GraphicsApi = GraphicsApi::VULKAN;
+    _args.VersionMajor = versionMajor;
+    _args.VersionMinor = versionMinor;
+    _args.VersionRevision = 0;
+    return *this;
+}
+
+auto WindowBuilder::WithOpenGL(size_t versionMajor, size_t versionMinor, ContextCreationApi api) -> WindowBuilder& {
+    _args.GraphicsApi = GraphicsApi::OPENGL;
+    _args.VersionMajor = versionMajor;
+    _args.VersionMinor = versionMinor;
+    _args.VersionRevision = 0;
+    _args.ContextCreationApi = api;
+    return *this;
+}
+
+auto WindowBuilder::WithOpenGLES(size_t versionMajor, size_t versionMinor, ContextCreationApi api) -> WindowBuilder& {
+    _args.GraphicsApi = GraphicsApi::OPENGLES;
+    _args.VersionMajor = versionMajor;
+    _args.VersionMinor = versionMinor;
+    _args.VersionRevision = 0;
+    _args.ContextCreationApi = api;
+    return *this;
+}
+
+auto WindowBuilder::WithOpenGLSettings(OpenGlProfile openglProfile, bool isForwardCompatible, bool isDebugMode) -> WindowBuilder& {
+    _args.OpenGlProfile = openglProfile;
+    _args.IsOpenGlForwardCompatible = isForwardCompatible;
+    _args.IsOpenGlDebugMode = isDebugMode;
     return *this;
 }
 
@@ -394,9 +422,14 @@ auto WindowBuilder::WithDoublebuffered(bool isDoublebuffered) -> WindowBuilder& 
     return *this;
 }
 
+auto WindowBuilder::WithNoErrorMode() -> WindowBuilder& {
+    _args.IsNoErrorMode = true;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Size.width > 0 && _args.Size.height > 0
-           && _args.GraphicsApi == GraphicsApi::VULKAN;
+           && _args.VersionMajor != 0;
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle> {
@@ -433,15 +466,36 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
                 printf("Can't use Vulkan on this device\n");
                 std::exit(1);
             }
-            // FIXME: need to debug, Opengl 4.6 still loads
+            if (args.VersionMajor != 1 || args.VersionMinor > 3) {
+                printf("Unsupported Vulkan version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                std::exit(1);
+            }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
             break;
         case GraphicsApi::OPENGL:
+            if (args.VersionMajor < 3
+                || args.VersionMajor == 3 && args.VersionMinor > 3
+                || args.VersionMajor == 4 && args.VersionMinor > 6) {
+                printf("Unsupported OpenGL version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                std::exit(1);
+            }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
             windowState->HasContextObject = true;
             break;
         case GraphicsApi::OPENGLES:
+            // FIXME: can't launch on laptop
+            if (args.VersionMajor < 3
+                || args.VersionMajor == 3 && args.VersionMinor > 3) {
+                printf("Unsupported OpenGLES version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                std::exit(1);
+            }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
             windowState->HasContextObject = true;
             break;
         default:
@@ -453,9 +507,6 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             break;
     }
     glfwWindowHint(GLFW_VISIBLE, args.IsVisible);
-    glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
     // TODO: maybe more explicit selection of refresh rate
     if (args.Monitor != nullptr && args.UseMonitorSize) {
         glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
@@ -482,6 +533,16 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_SAMPLES, args.MultisamplingNumSamples);
     glfwWindowHint(GLFW_SRGB_CAPABLE, args.IsSrgbCapable);
     glfwWindowHint(GLFW_DOUBLEBUFFER, args.IsDoubleBuffered);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, static_cast<int>(args.ContextCreationApi));
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, args.IsOpenGlForwardCompatible);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, args.IsOpenGlDebugMode);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, static_cast<int>(args.OpenGlProfile));
+    glfwWindowHint(GLFW_CONTEXT_ROBUSTNESS, GLFW_NO_ROBUSTNESS);
+    glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, args.IsNoErrorMode);
+    // TODO: other hints (not implemented):
+    // macOS: GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_COCOA_FRAME_NAME, GLFW_COCOA_FRAME_NAME
+    // x11: GLFW_X11_CLASS_NAME, GLFW_X11_INSTANCE_NAME
 
     auto* window = glfwCreateWindow(
         args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);

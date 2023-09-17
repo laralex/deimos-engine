@@ -52,8 +52,16 @@ enum class WindowSizeMode {
    MINIMIZED,
 };
 
+enum class OpenGlProfile {
+   ANY = GLFW_OPENGL_ANY_PROFILE,
+   CORE = GLFW_OPENGL_CORE_PROFILE,
+   COMPATIBLE = GLFW_OPENGL_COMPAT_PROFILE,
+};
+
 struct CreateWindowArgs {
    GraphicsApi GraphicsApi;
+   size_t VersionMajor = 0, VersionMinor = 0, VersionRevision = 0;
+   ContextCreationApi ContextCreationApi = ContextCreationApi::NATIVE;
    isize2 Size = { 800, 600 };
    bool UseMonitorSize = false;
    size_t WidthMin = 0, HeightMin = 0;
@@ -75,6 +83,10 @@ struct CreateWindowArgs {
    bool IsSrgbCapable = false;
    bool IsStereoscopicRendering = false;
    bool IsDoubleBuffered = true;
+   bool IsNoErrorMode = false;
+   bool IsOpenGlForwardCompatible = false;
+   bool IsOpenGlDebugMode = false;
+   OpenGlProfile OpenGlProfile = OpenGlProfile::ANY;
    size_t BitDepthRed = 8, BitDepthGreen = 8, BitDepthBlue = 8, BitDepthAlpha = 8;
    size_t BitDepthDepth = 24, BitDepthStencil = 8;
    size_t MultisamplingNumSamples = 0;
@@ -105,7 +117,10 @@ struct WindowBuilder {
    auto WithAspectRatioForceCurrent() -> WindowBuilder&;
    auto WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder&;
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
-   auto WithGraphicsBackend(GraphicsApi) -> WindowBuilder&;
+   auto WithVulkan(size_t versionMajor, size_t versionMinor) -> WindowBuilder&;
+   auto WithOpenGL(size_t versionMajor, size_t versionMinor, ContextCreationApi) -> WindowBuilder&;
+   auto WithOpenGLES(size_t versionMajor, size_t versionMinor, ContextCreationApi) -> WindowBuilder&;
+   auto WithOpenGLSettings(OpenGlProfile, bool isForwardCompatible, bool isDebugMode) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
    auto WithResizable(bool isResizable) -> WindowBuilder&;
    auto WithVisible(bool isVisible) -> WindowBuilder&;
@@ -122,6 +137,7 @@ struct WindowBuilder {
    auto WithStereoscopicRendering(bool useStereoscopic) -> WindowBuilder&;
    auto WithMultisamplingSamples(size_t numSamples) -> WindowBuilder&;
    auto WithDoublebuffered(bool isDoublebuffered) -> WindowBuilder&;
+   auto WithNoErrorMode() -> WindowBuilder&;
    auto WithWindowed() -> WindowBuilder&;
    auto WithWindowedBorderless() -> WindowBuilder&;
    auto WithOpacity(float opacity01) -> WindowBuilder&;
