@@ -456,6 +456,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
+    // TODO: maybe more explicit selection of refresh rate
     if (args.Monitor != nullptr && args.UseMonitorSize) {
         glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
         args.Size.width = primaryVideoMode->width;
@@ -631,6 +632,11 @@ auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor
         {videoMode->width, videoMode->height}, videoMode->refreshRate);
 }
 
+// TODO: make more obvious selection of refresh rate
+auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, isize2 size) -> void {
+    WindowToFullscreen(window, monitor,
+        size, GLFW_DONT_CARE);
+}
 auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, isize2 size, int refreshRate) -> void {
     if (monitor == nullptr) {
         return;

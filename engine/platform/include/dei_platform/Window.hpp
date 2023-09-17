@@ -161,6 +161,7 @@ auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::opti
 auto WindowBindToThread(const WindowHandle&) -> void;
 auto WindowUnbindFromThread(const WindowHandle&) -> void;
 auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&) -> void;
+auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&, isize2 size) -> void;
 auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&, isize2 size, int refreshRate) -> void;
 auto WindowToWindowed(const WindowHandle&) -> void;
 auto WindowToWindowedBorderless(const WindowHandle&) -> void;
