@@ -23,6 +23,7 @@ typedef void (*WindowClosingCallback)();
 typedef void (*WindowFocusedCallback)(bool isFocused);
 
 enum class ContextCreationApi {
+   NONE = 0,
    NATIVE = GLFW_NATIVE_CONTEXT_API,
    OS_MESA = GLFW_OSMESA_CONTEXT_API,
    EGL = GLFW_EGL_CONTEXT_API,
@@ -33,6 +34,7 @@ constexpr const char* ContextCreationApiToStr(ContextCreationApi api) {
       case ContextCreationApi::NATIVE: return stringify(ContextCreationApi::NATIVE);
       case ContextCreationApi::OS_MESA: return stringify(ContextCreationApi::OS_MESA);
       case ContextCreationApi::EGL: return stringify(ContextCreationApi::EGL);
+      case ContextCreationApi::NONE: return stringify(ContextCreationApi::NONE);
    }
    printf("Unreachable code reached: ContextCreationApiToStr on value %d", static_cast<int>(api));
    std::exit(1);
@@ -114,22 +116,6 @@ struct WindowBuilder {
 private:
    CreateWindowArgs _args;
 };
-
-//    Window(Window&&) = default;
-//    Window(const Window&) = delete;
-//    auto IsClosing() const -> bool;
-//    auto GetWidth() const -> size_t;
-//    auto GetHeight() const -> size_t;
-//    auto SetTitleUtf8(const char* titleUtf8) -> void;
-//    auto SetKeyMap(KeyMap&&) -> void;
-// protected:
-//    static auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-// private:
-//    explicit Window(const WindowSystemHandle&, CreateWindowArgs&&);
-//    WindowHandle _window;
-//    WindowSystemHandle _windowSystem;
-//    CreateWindowArgs _createArgs;
-// };
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builder) -> std::optional<WindowHandle>;
 auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& builder) -> std::optional<WindowHandle>;

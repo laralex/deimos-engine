@@ -345,6 +345,24 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     }
     auto* windowState = new WindowState{};
     windowState->HasContextObject = false;
+    auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
+    windowState->DesktopResolution = isize2 { primaryVideoMode->width, primaryVideoMode->height };
+    windowState->Size = args.Size;
+    windowState->GraphicsApi = args.GraphicsApi;
+    windowState->WindowSystem = windowSystem;
+    windowState->KeyMap = std::move(args.KeyMap);
+    windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
+    windowState->WindowResizeCallback = std::move(args.WindowResizeCallback);
+    windowState->WindowClosingCallback = std::move(args.WindowClosingCallback);
+    windowState->WindowFocusedCallback = std::move(args.WindowFocusedCallback);
+    windowState->InputTextUtf8 = std::string{};
+    windowState->InputTextCallback = std::move(args.InputTextCallback);
+    windowState->MousePositionCallback = std::move(args.MousePositionCallback);
+    windowState->MouseButtonCallback = std::move(args.MouseButtonCallback);
+    windowState->MouseScrollCallback = std::move(args.MouseScrollCallback);
+    windowState->MouseEntersWindowCallback = std::move(args.MouseEntersWindowCallback);
+
+    glfwDefaultWindowHints();
     switch (args.GraphicsApi) {
         case GraphicsApi::VULKAN:
             if (glfwVulkanSupported() == false) {
@@ -370,24 +388,6 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             // TODO: assert / panic
             break;
     }
-    auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
-    windowState->DesktopResolution = isize2 { primaryVideoMode->width, primaryVideoMode->height };
-    windowState->Size = args.Size;
-    windowState->GraphicsApi = args.GraphicsApi;
-    windowState->WindowSystem = windowSystem;
-    windowState->KeyMap = std::move(args.KeyMap);
-    windowState->WindowPositionCallback = std::move(args.WindowPositionCallback);
-    windowState->WindowResizeCallback = std::move(args.WindowResizeCallback);
-    windowState->WindowClosingCallback = std::move(args.WindowClosingCallback);
-    windowState->WindowFocusedCallback = std::move(args.WindowFocusedCallback);
-    windowState->InputTextUtf8 = std::string{};
-    windowState->InputTextCallback = std::move(args.InputTextCallback);
-    windowState->MousePositionCallback = std::move(args.MousePositionCallback);
-    windowState->MouseButtonCallback = std::move(args.MouseButtonCallback);
-    windowState->MouseScrollCallback = std::move(args.MouseScrollCallback);
-    windowState->MouseEntersWindowCallback = std::move(args.MouseEntersWindowCallback);
-
-    glfwDefaultWindowHints();
     glfwWindowHint(GLFW_VISIBLE, args.IsVisible);
     glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
@@ -455,9 +455,9 @@ auto WindowSetKeyMap(const WindowHandle& window, platform::input::KeyMap&& keyma
 }
 
 auto WindowSwapBuffers(const WindowHandle& window) -> void {
-    // if (GetWindowState(window)->HasContextObject == false) {
-    //     return;
-    // }
+    if (GetWindowState(window)->HasContextObject == false) {
+        return;
+    }
     glfwSwapBuffers(window.get());
 }
 

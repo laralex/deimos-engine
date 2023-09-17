@@ -85,8 +85,6 @@ auto main(int argc, char *argv[]) -> int {
 
     // make window
     auto windowSystem = dei::platform::CreateWindowSystem(&OnWindowError);
-    // NOTE: mustn't use when benchmarking
-    dei::platform::SetVerticalSync(windowSystem, true);
     auto primaryMonitor = dei::platform::MonitorQueryPrimary(windowSystem);
     assert(primaryMonitor != nullptr);
     auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, primaryMonitor);
@@ -129,6 +127,10 @@ auto main(int argc, char *argv[]) -> int {
         printf("Window creation failed");
         exit(1);
     }
+
+    // NOTE: mustn't use when benchmarking
+    dei::platform::SetVerticalSync(windowSystem, true);
+
     auto window = *std::move(maybeWindow);
     dei::platform::WindowRequestAttention(window);
     dei::platform::WindowSetIsAutoMinimized(window, false);
@@ -141,10 +143,11 @@ auto main(int argc, char *argv[]) -> int {
         using namespace dei::platform;
         int major, minor, revision;
         WindowContextGetVersion(window, major, minor, revision);
+        auto contextCreationApi = ContextCreationApiToStr(WindowContextGetCreationApi(window));
         printf("Context info: %s ver. %d.%d.%d, %s, debug=%d, noerror=%d, forwardcompat=%d\n",
             GraphicsApiToStr(WindowContextGetApi(window)),
             major, minor, revision,
-            ContextCreationApiToStr(WindowContextGetCreationApi(window)),
+            contextCreationApi,
             WindowContextIsDebugMode(window),
             WindowContextIsNoErrorMode(window),
             WindowContextIsForwardCompatible(window));
