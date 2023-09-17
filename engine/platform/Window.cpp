@@ -178,7 +178,7 @@ auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void 
 }
 
 auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void {
-    glfwSwapInterval(enableVerticalSync ? 1 : 0);
+    glfwSwapInterval(static_cast<int>(enableVerticalSync));
 }
 
 auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
@@ -380,15 +380,15 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     windowState->MouseEntersWindowCallback = std::move(args.MouseEntersWindowCallback);
 
     glfwDefaultWindowHints();
-    glfwWindowHint(GLFW_VISIBLE, args.IsVisible ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, args.IsVisible);
     glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
     // FIXME: investigate why it still steals focus when passing FALSE
-    glfwWindowHint(GLFW_FOCUSED, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_FOCUS_ON_SHOW, args.IsFocused ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_FOCUSED, args.IsFocused);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, args.IsFocused);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer);
 
     auto* window = glfwCreateWindow(
         args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
