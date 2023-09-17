@@ -103,7 +103,7 @@ auto main(int argc, char *argv[]) -> int {
     constexpr auto WINTITLE_FRAME_OFFSET = 18, WINTITLE_FRAME_SIZE = 10;
     constexpr auto WINTITLE_TIME_OFFSET = 34, WINTITLE_TIME_SIZE = 10;
 
-    dei::platform::FullscreenMode windowFullscreenMode = dei::platform::FullscreenMode::FULLSCREEN;
+    dei::platform::FullscreenMode windowFullscreenMode = dei::platform::FullscreenMode::WINDOWED;
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithGraphicsBackend(dei::platform::GraphicsApi::VULKAN)
@@ -119,6 +119,7 @@ auto main(int argc, char *argv[]) -> int {
         .WithScaleToMonitor(true)
         .WithRawMouseMotion(true)
         .WithResizable(false)
+        .WithColorBitDepth(32, 32, 32, 32)
         .WithFullscreen(windowFullscreenMode == dei::platform::FullscreenMode::FULLSCREEN ? primaryMonitor : nullptr, true)
         .WithMousePositionCallback(&OnMouseMoved)
         .WithMouseScrollCallback(&OnMouseScrolled)

@@ -72,6 +72,12 @@ struct CreateWindowArgs {
    bool IsTopmost = false;
    bool IsCursorCentered = false;
    bool IsScaleToMonitor = true;
+   bool IsSrgbCapable = false;
+   bool IsStereoscopicRendering = false;
+   bool IsDoubleBuffered = true;
+   size_t BitDepthRed = 8, BitDepthGreen = 8, BitDepthBlue = 8, BitDepthAlpha = 8;
+   size_t BitDepthDepth = 24, BitDepthStencil = 8;
+   size_t MultisamplingNumSamples = 0;
    float Opacity01 = 1.0f;
    bool IsTransparentFramebuffer = false;
    FullscreenMode FullscreenMode = FullscreenMode::WINDOWED;
@@ -109,6 +115,13 @@ struct WindowBuilder {
    auto WithTopmost(bool isTopmost) -> WindowBuilder&;
    auto WithScaleToMonitor(bool isScaleToMonitor) -> WindowBuilder&;
    auto WithFullscreen(const MonitorHandle&, bool useMonitorSize=false, bool isCursorCentered=true) -> WindowBuilder&;
+   auto WithColorBitDepth(size_t red, size_t green, size_t blue, size_t alpha) -> WindowBuilder&;
+   auto WithStencilBitDepth(size_t stencilBitDepth) -> WindowBuilder&;
+   auto WithDepthBitDepth(size_t depthBitDepth) -> WindowBuilder&;
+   auto WithSrgb(bool isSrgbCapable) -> WindowBuilder&;
+   auto WithStereoscopicRendering(bool useStereoscopic) -> WindowBuilder&;
+   auto WithMultisamplingSamples(size_t numSamples) -> WindowBuilder&;
+   auto WithDoublebuffered(bool isDoublebuffered) -> WindowBuilder&;
    auto WithWindowed() -> WindowBuilder&;
    auto WithWindowedBorderless() -> WindowBuilder&;
    auto WithOpacity(float opacity01) -> WindowBuilder&;

@@ -356,6 +356,44 @@ auto WindowBuilder::WithTransparentFramebuffer(bool isTransparent) -> WindowBuil
     return *this;
 }
 
+auto WindowBuilder::WithColorBitDepth(size_t redBitDepth, size_t greenBitDepth, size_t blueBitDepth, size_t alphaBitDepth) -> WindowBuilder& {
+    _args.BitDepthRed = redBitDepth;
+    _args.BitDepthGreen = greenBitDepth;
+    _args.BitDepthBlue = blueBitDepth;
+    _args.BitDepthAlpha = alphaBitDepth;
+    return *this;
+}
+
+auto WindowBuilder::WithStencilBitDepth(size_t stencilBitDepth) -> WindowBuilder& {
+    _args.BitDepthStencil = stencilBitDepth;
+    return *this;
+}
+
+auto WindowBuilder::WithDepthBitDepth(size_t depthBitDepth) -> WindowBuilder& {
+    _args.BitDepthDepth = depthBitDepth;
+    return *this;
+}
+
+auto WindowBuilder::WithSrgb(bool isSrgbCapable) -> WindowBuilder& {
+    _args.IsSrgbCapable = isSrgbCapable;
+    return *this;
+}
+
+auto WindowBuilder::WithStereoscopicRendering(bool useStereoscopic) -> WindowBuilder& {
+    _args.IsStereoscopicRendering = useStereoscopic;
+    return *this;
+}
+
+auto WindowBuilder::WithMultisamplingSamples(size_t numSamples) -> WindowBuilder& {
+    _args.MultisamplingNumSamples = numSamples;
+    return *this;
+}
+
+auto WindowBuilder::WithDoublebuffered(bool isDoublebuffered) -> WindowBuilder& {
+    _args.IsDoubleBuffered = isDoublebuffered;
+    return *this;
+}
+
 auto WindowBuilder::IsValid() const -> bool {
     return _args.Size.width > 0 && _args.Size.height > 0
            && _args.GraphicsApi == GraphicsApi::VULKAN;
@@ -433,6 +471,16 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_CENTER_CURSOR, args.IsCursorCentered);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, args.IsScaleToMonitor);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer);
+    glfwWindowHint(GLFW_RED_BITS, args.BitDepthRed);
+    glfwWindowHint(GLFW_GREEN_BITS, args.BitDepthGreen);
+    glfwWindowHint(GLFW_BLUE_BITS, args.BitDepthBlue);
+    glfwWindowHint(GLFW_ALPHA_BITS, args.BitDepthAlpha);
+    glfwWindowHint(GLFW_DEPTH_BITS, args.BitDepthDepth);
+    glfwWindowHint(GLFW_STENCIL_BITS, args.BitDepthStencil);
+    glfwWindowHint(GLFW_STEREO, args.IsStereoscopicRendering);
+    glfwWindowHint(GLFW_SAMPLES, args.MultisamplingNumSamples);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, args.IsSrgbCapable);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, args.IsDoubleBuffered);
 
     auto* window = glfwCreateWindow(
         args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
