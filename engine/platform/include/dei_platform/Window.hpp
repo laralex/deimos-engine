@@ -41,6 +41,12 @@ enum class FullscreenMode {
    WINDOWED_BORDERLESS
 };
 
+enum class WindowSizeMode {
+   NORMAL,
+   MAXIMIZED,
+   MINIMIZED,
+};
+
 struct CreateWindowArgs {
    GraphicsBackend GraphicsBackend;
    isize2 Size = { 800, 600 };
@@ -147,25 +153,20 @@ auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorH
 auto WindowSetVisible(const WindowHandle&, bool makeVisible) -> void;
 auto WindowIsVisible(const WindowHandle&) -> bool;
 auto WindowIsFocused(const WindowHandle&) -> bool;
+auto WindowIsHovered(const WindowHandle&) -> bool;
 auto WindowRequestAttention(const WindowHandle&) -> void;
 auto WindowSetOpacity(const WindowHandle&, float opacity01) -> void;
 auto WindowGetOpacity(const WindowHandle& window) -> float;
 auto WindowSetIsResizable(const WindowHandle&, bool makeResizable) -> void;
-auto WindowGetIsResizable(const WindowHandle&) -> bool;
+auto WindowIsResizable(const WindowHandle&) -> bool;
 auto WindowSetIsTopmost(const WindowHandle&, bool makeFloating) -> void;
-auto WindowGetIsTopmost(const WindowHandle&) -> bool;
+auto WindowIsTopmost(const WindowHandle&) -> bool;
 auto WindowSetIsDecorated(const WindowHandle&, bool makeDecorated) -> void;
-auto WindowGetIsDecorated(const WindowHandle&) -> bool;
+auto WindowIsDecorated(const WindowHandle&) -> bool;
 auto WindowSetIsAutoMinimized(const WindowHandle&, bool makeAutoMinimized) -> void;
-auto WindowGetIsAutoMinimized(const WindowHandle&) -> bool;
+auto WindowIsAutoMinimized(const WindowHandle&) -> bool;
 auto WindowSetIsFocusedAfterVisible(const WindowHandle&, bool makeFocusedAfterVisible) -> void;
-auto WindowGetIsFocusedAfterVisible(const WindowHandle&) -> bool;
-
-enum class WindowSizeMode {
-   NORMAL,
-   MAXIMIZED,
-   MINIMIZED,
-};
+auto WindowIsFocusedAfterVisible(const WindowHandle&) -> bool;
 auto WindowSetSizeMode(const WindowHandle&, WindowSizeMode mode) -> void;
 auto WindowGetSizeMode(const WindowHandle&) -> WindowSizeMode;
 //glfwSetKeyCallback(window, key_callback);

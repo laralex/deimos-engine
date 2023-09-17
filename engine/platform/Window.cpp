@@ -581,11 +581,15 @@ auto WindowSetVisible(const WindowHandle& window, bool makeVisible) -> void {
 }
 
 auto WindowIsVisible(const WindowHandle& window) -> bool {
-    return glfwGetWindowAttrib(window.get(), GLFW_VISIBLE) == GLFW_TRUE;
+    return glfwGetWindowAttrib(window.get(), GLFW_VISIBLE);
 }
 
 auto WindowIsFocused(const WindowHandle& window) -> bool {
-    return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED) == GLFW_TRUE;
+    return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED);
+}
+
+auto WindowIsHovered(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_HOVERED);
 }
 
 auto WindowRequestAttention(const WindowHandle& window) -> void {
@@ -607,7 +611,7 @@ auto WindowSetIsResizable(const WindowHandle& window, bool makeResizable) -> voi
     glfwSetWindowAttrib(window.get(), GLFW_RESIZABLE, makeResizable);
 }
 
-auto WindowGetIsResizable(const WindowHandle& window) -> bool {
+auto WindowIsResizable(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_RESIZABLE);
 }
 
@@ -615,7 +619,7 @@ auto WindowSetIsTopmost(const WindowHandle& window, bool makeFloating) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_FLOATING, makeFloating);
 }
 
-auto WindowGetIsTopmost(const WindowHandle& window) -> bool {
+auto WindowIsTopmost(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_FLOATING);
 }
 
@@ -623,7 +627,7 @@ auto WindowSetIsDecorated(const WindowHandle& window, bool makeDecorated) -> voi
     glfwSetWindowAttrib(window.get(), GLFW_DECORATED, makeDecorated); 
 }
 
-auto WindowGetIsDecorated(const WindowHandle& window) -> bool {
+auto WindowIsDecorated(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_DECORATED);
 }
 
@@ -631,7 +635,7 @@ auto WindowSetIsAutoMinimized(const WindowHandle& window, bool makeAutoMinimized
     glfwSetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY, makeAutoMinimized);
 }
 
-auto WindowGetIsAutoMinimized(const WindowHandle& window) -> bool {
+auto WindowIsAutoMinimized(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY);
 }
 
@@ -639,7 +643,7 @@ auto WindowSetIsFocusedAfterVisible(const WindowHandle& window, bool makeFocused
     glfwSetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW, makeFocusedAfterVisible);
 }
 
-auto WindowGetIsFocusedAfterVisible(const WindowHandle& window) -> bool {
+auto WindowIsFocusedAfterVisible(const WindowHandle& window) -> bool {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
 }
 
