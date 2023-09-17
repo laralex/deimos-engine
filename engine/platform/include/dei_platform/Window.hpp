@@ -55,6 +55,7 @@ enum class WindowSizeMode {
 struct CreateWindowArgs {
    GraphicsApi GraphicsApi;
    isize2 Size = { 800, 600 };
+   bool UseMonitorSize = false;
    size_t WidthMin = 0, HeightMin = 0;
    size_t WidthMax = 1 << 31, HeightMax = 1 << 31;
    bool UseAspectRatio = false;
@@ -65,6 +66,12 @@ struct CreateWindowArgs {
    bool TryRawMouseMotion = false;
    bool IsVisible = true;
    bool IsFocused = true;
+   bool IsResizable = true;
+   bool IsDecorated = true;
+   bool IsAutoMinimized = false;
+   bool IsTopmost = false;
+   bool IsCursorCentered = false;
+   bool IsScaleToMonitor = true;
    float Opacity01 = 1.0f;
    bool IsTransparentFramebuffer = false;
    FullscreenMode FullscreenMode = FullscreenMode::WINDOWED;
@@ -94,13 +101,18 @@ struct WindowBuilder {
    auto WithTitleUtf8(const char*) -> WindowBuilder&;
    auto WithGraphicsBackend(GraphicsApi) -> WindowBuilder&;
    auto WithKeymap(input::KeyMap&&) -> WindowBuilder&;
+   auto WithResizable(bool isResizable) -> WindowBuilder&;
    auto WithVisible(bool isVisible) -> WindowBuilder&;
-   auto WithFullscreen(const MonitorHandle&) -> WindowBuilder&;
+   auto WithDecorated(bool isDecorated) -> WindowBuilder&;
+   auto WithFocused(bool isWindowFocused) -> WindowBuilder&;
+   auto WithAutoMinimized(bool isAutoMinimized) -> WindowBuilder&;
+   auto WithTopmost(bool isTopmost) -> WindowBuilder&;
+   auto WithScaleToMonitor(bool isScaleToMonitor) -> WindowBuilder&;
+   auto WithFullscreen(const MonitorHandle&, bool useMonitorSize=false, bool isCursorCentered=true) -> WindowBuilder&;
    auto WithWindowed() -> WindowBuilder&;
    auto WithWindowedBorderless() -> WindowBuilder&;
-   auto WithFocus(bool isWindowFocused) -> WindowBuilder&;
-   auto WithFocusCallback(WindowFocusedCallback) -> WindowBuilder&;
    auto WithOpacity(float opacity01) -> WindowBuilder&;
+   auto WithFocusCallback(WindowFocusedCallback) -> WindowBuilder&;
    auto WithTransparentFramebuffer(bool isTransparent) -> WindowBuilder&;
    auto WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder&;
    auto WithPositionCallback(WindowPositionCallback) -> WindowBuilder&;
@@ -136,6 +148,7 @@ auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::opti
 auto WindowBindToThread(const WindowHandle&) -> void;
 auto WindowUnbindFromThread(const WindowHandle&) -> void;
 auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&) -> void;
+auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&, isize2 size, int refreshRate) -> void;
 auto WindowToWindowed(const WindowHandle&) -> void;
 auto WindowToWindowedBorderless(const WindowHandle&) -> void;
 auto WindowSetFullscreenMode(const WindowHandle&, FullscreenMode, const MonitorHandle&) -> void;

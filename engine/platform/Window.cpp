@@ -7,7 +7,7 @@ using namespace dei;
 
 struct WindowState {
     platform::isize2 Size;
-    platform::isize2 DesktopResolution;
+    platform::isize2 MonitorSize;
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
@@ -233,7 +233,31 @@ auto WindowBuilder::WithVisible(bool isVisible) -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::WithFocus(bool isWindowFocused) -> WindowBuilder& {
+auto WindowBuilder::WithResizable(bool isResizable) -> WindowBuilder& {
+    _args.IsResizable = isResizable;
+    return *this;
+}
+
+auto WindowBuilder::WithDecorated(bool isDecorated) -> WindowBuilder& {
+    _args.IsDecorated = isDecorated;
+    return *this;
+}
+
+auto WindowBuilder::WithAutoMinimized(bool isAutoMinimized) -> WindowBuilder& {
+    _args.IsAutoMinimized = isAutoMinimized;
+    return *this;
+}
+auto WindowBuilder::WithTopmost(bool isTopmost) -> WindowBuilder& {
+    _args.IsTopmost = isTopmost;
+    return *this;
+}
+
+auto WindowBuilder::WithScaleToMonitor(bool isScaleToMonitor) -> WindowBuilder& {
+    _args.IsScaleToMonitor = isScaleToMonitor;
+    return *this;
+}
+
+auto WindowBuilder::WithFocused(bool isWindowFocused) -> WindowBuilder& {
     _args.IsFocused = isWindowFocused;
     return *this;
 }
@@ -298,12 +322,14 @@ auto WindowBuilder::WithClosingCallback(WindowClosingCallback callback) -> Windo
     return *this;
 }
 
-auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor) -> WindowBuilder& {
+auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor, bool useMonitorSize, bool centerCursor) -> WindowBuilder& {
     if (monitor == nullptr) {
         return WithWindowed();
     }
     _args.Monitor = monitor;
     _args.FullscreenMode = FullscreenMode::FULLSCREEN;
+    _args.IsCursorCentered = centerCursor;
+    _args.UseMonitorSize = useMonitorSize;
     return *this;
 }
 
@@ -346,7 +372,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     auto* windowState = new WindowState{};
     windowState->HasContextObject = false;
     auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
-    windowState->DesktopResolution = isize2 { primaryVideoMode->width, primaryVideoMode->height };
+    windowState->MonitorSize = isize2 { primaryVideoMode->width, primaryVideoMode->height };
     windowState->Size = args.Size;
     windowState->GraphicsApi = args.GraphicsApi;
     windowState->WindowSystem = windowSystem;
@@ -392,10 +418,20 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_RED_BITS, primaryVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, primaryVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, primaryVideoMode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
+    if (args.Monitor != nullptr && args.UseMonitorSize) {
+        glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
+        args.Size.width = primaryVideoMode->width;
+        args.Size.height = primaryVideoMode->height;
+    }
     // FIXME: investigate why it still steals focus when passing FALSE
     glfwWindowHint(GLFW_FOCUSED, args.IsFocused);
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, args.IsFocused);
+    glfwWindowHint(GLFW_RESIZABLE, args.IsResizable);
+    glfwWindowHint(GLFW_DECORATED, args.IsDecorated);
+    glfwWindowHint(GLFW_AUTO_ICONIFY, args.IsAutoMinimized);
+    glfwWindowHint(GLFW_FLOATING, args.IsTopmost);
+    glfwWindowHint(GLFW_CENTER_CURSOR, args.IsCursorCentered);
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, args.IsScaleToMonitor);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer);
 
     auto* window = glfwCreateWindow(
@@ -542,12 +578,17 @@ auto WindowUnbindFromThread(const WindowHandle& window) -> void {
 }
 
 auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor) -> void {
+    auto videoMode = glfwGetVideoMode(monitor);
+    WindowToFullscreen(window, monitor,
+        {videoMode->width, videoMode->height}, videoMode->refreshRate);
+}
+
+auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, isize2 size, int refreshRate) -> void {
     if (monitor == nullptr) {
         return;
     }
-    auto videoMode = glfwGetVideoMode(monitor);
     glfwSetWindowMonitor(window.get(), monitor, 0, 0,
-        videoMode->width, videoMode->height, videoMode->refreshRate);
+        size.width, size.height, refreshRate);
 }
 
 auto WindowToWindowed(const WindowHandle& window) -> void {
@@ -561,7 +602,7 @@ auto WindowToWindowed(const WindowHandle& window) -> void {
 }
 
 auto WindowToWindowedBorderless(const WindowHandle& window) -> void {
-    auto desktopResolution = GetWindowState(window)->DesktopResolution;
+    auto desktopResolution = GetWindowState(window)->MonitorSize;
     glfwSetWindowMonitor(window.get(), nullptr, 0, 0,
         desktopResolution.width, desktopResolution.height, 0);
 }
