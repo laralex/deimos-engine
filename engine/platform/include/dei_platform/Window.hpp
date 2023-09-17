@@ -150,6 +150,16 @@ auto WindowIsFocused(const WindowHandle&) -> bool;
 auto WindowRequestAttention(const WindowHandle&) -> void;
 auto WindowSetOpacity(const WindowHandle&, float opacity01) -> void;
 auto WindowGetOpacity(const WindowHandle& window) -> float;
+auto WindowSetIsResizable(const WindowHandle&, bool makeResizable) -> void;
+auto WindowGetIsResizable(const WindowHandle&) -> bool;
+auto WindowSetIsTopmost(const WindowHandle&, bool makeFloating) -> void;
+auto WindowGetIsTopmost(const WindowHandle&) -> bool;
+auto WindowSetIsDecorated(const WindowHandle&, bool makeDecorated) -> void;
+auto WindowGetIsDecorated(const WindowHandle&) -> bool;
+auto WindowSetIsAutoMinimized(const WindowHandle&, bool makeAutoMinimized) -> void;
+auto WindowGetIsAutoMinimized(const WindowHandle&) -> bool;
+auto WindowSetIsFocusedAfterVisible(const WindowHandle&, bool makeFocusedAfterVisible) -> void;
+auto WindowGetIsFocusedAfterVisible(const WindowHandle&) -> bool;
 
 enum class WindowSizeMode {
    NORMAL,

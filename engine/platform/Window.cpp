@@ -603,4 +603,44 @@ auto WindowGetOpacity(const WindowHandle& window) -> float {
     return glfwGetWindowOpacity(window.get());
 }
 
+auto WindowSetIsResizable(const WindowHandle& window, bool makeResizable) -> void {
+    glfwSetWindowAttrib(window.get(), GLFW_RESIZABLE, makeResizable);
+}
+
+auto WindowGetIsResizable(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_RESIZABLE);
+}
+
+auto WindowSetIsTopmost(const WindowHandle& window, bool makeFloating) -> void {
+    glfwSetWindowAttrib(window.get(), GLFW_FLOATING, makeFloating);
+}
+
+auto WindowGetIsTopmost(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_FLOATING);
+}
+
+auto WindowSetIsDecorated(const WindowHandle& window, bool makeDecorated) -> void {
+    glfwSetWindowAttrib(window.get(), GLFW_DECORATED, makeDecorated); 
+}
+
+auto WindowGetIsDecorated(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_DECORATED);
+}
+
+auto WindowSetIsAutoMinimized(const WindowHandle& window, bool makeAutoMinimized) -> void {
+    glfwSetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY, makeAutoMinimized);
+}
+
+auto WindowGetIsAutoMinimized(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY);
+}
+
+auto WindowSetIsFocusedAfterVisible(const WindowHandle& window, bool makeFocusedAfterVisible) -> void {
+    glfwSetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW, makeFocusedAfterVisible);
+}
+
+auto WindowGetIsFocusedAfterVisible(const WindowHandle& window) -> bool {
+    return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
+}
+
 }

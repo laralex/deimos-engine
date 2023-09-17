@@ -131,6 +131,11 @@ auto main(int argc, char *argv[]) -> int {
     }
     auto window = *std::move(maybeWindow);
     dei::platform::WindowRequestAttention(window);
+    dei::platform::WindowSetIsAutoMinimized(window, false);
+    dei::platform::WindowSetIsTopmost(window, false);
+    dei::platform::WindowSetIsFocusedAfterVisible(window, true);
+    dei::platform::WindowSetIsResizable(window, true);
+    dei::platform::WindowSetIsDecorated(window, true);
 
     dei::platform::WindowSetKeyMap(window, {
         {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
