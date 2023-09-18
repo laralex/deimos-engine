@@ -15,6 +15,11 @@ using namespace dei::platform::input;
 
 struct EngineState {
     std::uint32_t DrawCounter{0};
+    VkSurfaceKHR WindowSurface;
+    VkInstance VulkanInstance;
+    std::function<VkSurfaceKHR(VkInstance)> CreateVkSurfaceCallback;
+    std::uint32_t RequiredHostExtensionCount;
+    const char** RequiredHostExtensions;
 };
 
 auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) {
@@ -107,8 +112,6 @@ auto main(int argc, char *argv[]) -> int {
     auto windowBuilder = dei::platform::WindowBuilder{};
     windowBuilder
         .WithVulkan(1, 3)
-        .WithOpenGL(3, 3, dei::platform::ContextCreationApi::EGL)
-        .WithOpenGLSettings(dei::platform::OpenGlProfile::COMPATIBLE, false, true)
         .WithSize(800, 600)
         .WithSizeMin(200, 200)
         .WithTitleUtf8(windowTitle.c_str())
@@ -216,6 +219,16 @@ auto main(int argc, char *argv[]) -> int {
     auto engineLibPath = dei::platform::MakeLibraryFilepath(argv[1], argv[2]);
     assert(cr_plugin_open(engineHotReloader, engineLibPath.c_str())); // the full path to library
     auto engineState = EngineState{};
+    engineState.CreateVkSurfaceCallback = [&](VkInstance instance){
+        auto maybeSurface = dei::platform::WindowInitializeVulkanBackend(window, instance); 
+        if (maybeSurface == std::nullopt) {
+            printf("GLFW Failed to create VkSurfaceKHR");
+            std::exit(1);
+        }
+        return *maybeSurface;
+    };
+    engineState.RequiredHostExtensionCount = dei::platform::WindowVulkanGetRequiredExtensionsCount(window);
+    engineState.RequiredHostExtensions = dei::platform::WindowVulkanGetRequiredExtensions(window);
     engineHotReloader.userdata = static_cast<void*>(&engineState);
     printf("Hot-loadable library: %s\n", engineLibPath.c_str());
 

@@ -1,45 +1,20 @@
+#include "dei/Prelude.hpp"
 #include "dei/Camera.hpp"
+#include "dei/Vulkan.hpp"
 
 #include <cr.h>
 
 #include <iostream>
-#include <vulkan/vulkan.hpp>
-// #include <dlfcn.h>
+#include <functional>
 
-// class EngineInstance {
-// public: 
-//     typedef auto (*dei_camera)(f32 Translation, vec2 const& Rotation) -> mat4;
-//     static dei_camera camera;
-
-//     static void Open() {
-//         _LibraryHandle = dlopen("./build/libdei.so", RTLD_LAZY);
-//         if (!_LibraryHandle) {
-//             fputs (dlerror(), stderr);
-//             exit(1);
-//         }
-
-//         camera = (dei_camera)dlsym(_LibraryHandle, "camera");
-
-//         char* error;
-//         if ((error = dlerror()) != NULL)  {
-//             fputs(error, stderr);
-//             exit(1);
-//         }
-//     }
-
-//     static void Close() {
-//         dlclose(_LibraryHandle);
-//     }
-
-// private:
-//     static void* _LibraryHandle;
-// };
-
-// void* EngineInstance::_LibraryHandle{nullptr};
-// EngineInstance::dei_camera EngineInstance::camera{nullptr};
 
 struct HotReloadState {
     u32 DrawCounter{0};
+    VkSurfaceKHR WindowSurface;
+    VkInstance VulkanInstance;
+    std::function<VkSurfaceKHR(VkInstance)> CreateVkSurfaceCallback;
+    u32 RequiredHostExtensionCount;
+    const char** RequiredHostExtensions;
 };
 
 static HotReloadState* state{nullptr};
@@ -48,6 +23,12 @@ auto OnLoad(cr_plugin *ctx) -> int {
     std::cout << "dei::OnLoad() v" << ctx->version << " e" << ctx->failure << '\n';
 
     state = reinterpret_cast<HotReloadState*>(ctx->userdata);
+
+    auto vkInstance = dei::render::CreateVulkanInstance(
+        state->RequiredHostExtensions,
+        state->RequiredHostExtensionCount);
+    auto vkSurface = state->CreateVkSurfaceCallback(vkInstance);
+    std::cout << "Loaded VkInstance: " << vkInstance << " VkSurfaceKHR: " << vkSurface << std::endl;
 
     auto extensionCount = uint32_t{0};
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);

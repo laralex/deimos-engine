@@ -173,7 +173,6 @@ auto WindowGetMousePosition(const WindowHandle&) -> dvec2;
 auto WindowGetMousePosition(const WindowHandle&, dvec2& destination) -> void;
 auto WindowSetCursorMode(const WindowHandle&, input::CursorMode mode) -> void;
 auto WindowGetCursorMode(const WindowHandle&) -> input::CursorMode;
-auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::optional<VkSurfaceKHR>;
 auto WindowBindToThread(const WindowHandle&) -> void;
 auto WindowUnbindFromThread(const WindowHandle&) -> void;
 auto WindowToFullscreen(const WindowHandle&, const MonitorHandle&) -> void;
@@ -201,6 +200,10 @@ auto WindowSetIsFocusedAfterVisible(const WindowHandle&, bool makeFocusedAfterVi
 auto WindowIsFocusedAfterVisible(const WindowHandle&) -> bool;
 auto WindowSetSizeMode(const WindowHandle&, WindowSizeMode mode) -> void;
 auto WindowGetSizeMode(const WindowHandle&) -> WindowSizeMode;
+
+auto WindowInitializeVulkanBackend(const WindowHandle&, VkInstance) -> std::optional<VkSurfaceKHR>;
+auto WindowVulkanGetRequiredExtensionsCount(const WindowHandle&) -> std::uint32_t;
+auto WindowVulkanGetRequiredExtensions(const WindowHandle&) -> const char **;
 
 auto WindowContextGetApi(const WindowHandle&) -> GraphicsApi;
 auto WindowContextGetCreationApi(const WindowHandle&) -> ContextCreationApi;

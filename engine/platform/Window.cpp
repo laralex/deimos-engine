@@ -676,6 +676,18 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
     return surface;
 }
 
+auto WindowVulkanGetRequiredExtensionsCount(const WindowHandle&) -> std::uint32_t {
+    uint32_t glfwExtensionCount;
+    auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    return glfwExtensionCount;
+}
+
+auto WindowVulkanGetRequiredExtensions(const WindowHandle&) -> const char ** {
+    uint32_t glfwExtensionCount;
+    auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    return glfwExtensions;
+}
+
 auto WindowBindToThread(const WindowHandle& window) -> void {
     if (GetWindowState(window)->GraphicsApi != GraphicsApi::OPENGL) {
         return;
