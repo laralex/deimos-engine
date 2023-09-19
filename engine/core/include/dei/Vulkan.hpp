@@ -2,8 +2,6 @@
 
 #include "dei/Prelude.hpp"
 
-#include <vulkan/vulkan.hpp>
-
 #include <vector>
 
 namespace dei::render {

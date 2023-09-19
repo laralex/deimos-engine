@@ -4,6 +4,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/fwd.hpp>
 
+#include <vulkan/vulkan.hpp>
+
 using b8 = bool;
 using u8  = std::uint8_t;
 using u16 = std::uint16_t;
@@ -33,3 +35,19 @@ using ivec4 = glm::ivec4;
 using mat2 = glm::mat2;
 using mat3 = glm::mat3;
 using mat4 = glm::mat4;
+
+namespace dei {
+
+struct EngineDependencies {
+    std::function<VkSurfaceKHR(VkInstance)> CreateVkSurfaceCallback;
+    u32 RequiredHostExtensionCount;
+    const char** RequiredHostExtensions;
+};
+
+struct EngineState {
+    u32 DrawCounter{0};
+    VkSurfaceKHR WindowSurface;
+    VkInstance VulkanInstance;
+};
+
+}

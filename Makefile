@@ -10,7 +10,7 @@ EDITOR_OUTNAME ?= Editor_DevelEngine.exe
 CFLAGS = $(if $(DEBUG),-O0 -g, -O2) -std=c++17
 
 LDFLAGS_EDITOR = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi -L$(BUILD_DIR)/$(ENGINE_PIL_OUTNAME)
-INCLUDES_EDITOR = -I./vendor/glm -I./vendor/cr -I./engine/platform/include
+INCLUDES_EDITOR = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PIL_SRC_ROOT)/include -I$(ENGINE_CORE_SRC_ROOT)/include
 
 LDFLAGS_ENGINE = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 INCLUDES_ENGINE = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PIL_SRC_ROOT)/include -I$(ENGINE_CORE_SRC_ROOT)/include
@@ -29,7 +29,6 @@ $(BUILD_DIR)/$(ENGINE_PIL_OUTNAME): $(ENGINE_PIL_SRC)
 # dei
 ENGINE_CORE_SRC := $(ENGINE_CORE_SRC_ROOT)/Camera.cpp
 ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/HotLoadGuest.cpp
-ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/DevelApp.cpp
 $(BUILD_DIR)/$(ENGINE_CORE_OUTNAME): $(ENGINE_CORE_SRC)
 	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) $(INCLUDES_ENGINE)
 

@@ -6,6 +6,6 @@
 namespace dei {
 
 extern "C"
-auto MakeCamera(f32 Translate, vec2 const& Rotate) -> mat4;
+auto MakeCamera(f32 translation, vec2 const& rotation) -> mat4;
 
 }

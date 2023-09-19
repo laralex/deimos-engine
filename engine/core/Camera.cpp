@@ -5,13 +5,17 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
+namespace dei {
+
 extern "C"
-auto dei::MakeCamera(f32 Translate, vec2 const& Rotate) -> mat4
+auto MakeCamera(f32 translation, vec2 const& rotation) -> mat4
 {
-   auto Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.f);
-   auto View = glm::translate(mat4(1.0f), vec3(0.0f, 0.0f, -Translate));
-   View = glm::rotate(View, Rotate.y, vec3(-1.0f, 0.0f, 0.0f));
-   View = glm::rotate(View, Rotate.x, vec3(0.0f, 1.0f, 0.0f));
-   auto Model = glm::scale(mat4(1.0f), vec3(0.5f));
-   return Projection * View * Model;
+   auto projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.f);
+   auto view = glm::translate(mat4(1.0f), vec3(0.0f, 0.0f, -translation));
+   view = glm::rotate(view, rotation.y, vec3(-1.0f, 0.0f, 0.0f));
+   view = glm::rotate(view, rotation.x, vec3(0.0f, 1.0f, 0.0f));
+   auto model = glm::scale(mat4(1.0f), vec3(0.5f));
+   return projection * view * model;
+}
+
 }

@@ -669,8 +669,8 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
         return std::nullopt;
     }
     VkSurfaceKHR surface;
-    VkResult err = glfwCreateWindowSurface(vkInstance, window.get(), NULL, &surface);
-    if (err) {
+    VkResult status = glfwCreateWindowSurface(vkInstance, window.get(), NULL, &surface);
+    if (status != VK_SUCCESS) {
         return std::nullopt;
     }
     return surface;

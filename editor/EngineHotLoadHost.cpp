@@ -4,6 +4,8 @@
 #include "dei_platform/Mouse.hpp"
 #include "dei_platform/Monitor.hpp"
 
+#include "dei/Prelude.hpp"
+
 using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
@@ -13,13 +15,9 @@ using namespace dei::platform::input;
 #include <string>
 #include <iostream>
 
-struct EngineState {
-    std::uint32_t DrawCounter{0};
-    VkSurfaceKHR WindowSurface;
-    VkInstance VulkanInstance;
-    std::function<VkSurfaceKHR(VkInstance)> CreateVkSurfaceCallback;
-    std::uint32_t RequiredHostExtensionCount;
-    const char** RequiredHostExtensions;
+struct EngineHotReloadState {
+    dei::EngineState EngineState;
+    dei::EngineDependencies EngineDependencies;
 };
 
 auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) {
@@ -84,7 +82,7 @@ auto OnWindowError(int code, const char* description) {
 auto main(int argc, char *argv[]) -> int {
     // parse args
     assert(argc >= 3);
-    auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 100000);
+    auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 400);
     constexpr double FPS_CAP = 300.0;
     constexpr double TICK_CAP_SECONDS = 1.0 / FPS_CAP;
 
@@ -218,8 +216,10 @@ auto main(int argc, char *argv[]) -> int {
     auto engineHotReloader = cr_plugin{};
     auto engineLibPath = dei::platform::MakeLibraryFilepath(argv[1], argv[2]);
     assert(cr_plugin_open(engineHotReloader, engineLibPath.c_str())); // the full path to library
-    auto engineState = EngineState{};
-    engineState.CreateVkSurfaceCallback = [&](VkInstance instance){
+    auto engineDependencies = dei::EngineDependencies{};
+    engineDependencies.RequiredHostExtensionCount = dei::platform::WindowVulkanGetRequiredExtensionsCount(window);
+    engineDependencies.RequiredHostExtensions = dei::platform::WindowVulkanGetRequiredExtensions(window);
+    engineDependencies.CreateVkSurfaceCallback = [&](VkInstance instance){
         auto maybeSurface = dei::platform::WindowInitializeVulkanBackend(window, instance); 
         if (maybeSurface == std::nullopt) {
             printf("GLFW Failed to create VkSurfaceKHR");
@@ -227,9 +227,12 @@ auto main(int argc, char *argv[]) -> int {
         }
         return *maybeSurface;
     };
-    engineState.RequiredHostExtensionCount = dei::platform::WindowVulkanGetRequiredExtensionsCount(window);
-    engineState.RequiredHostExtensions = dei::platform::WindowVulkanGetRequiredExtensions(window);
-    engineHotReloader.userdata = static_cast<void*>(&engineState);
+    auto engineHotReloadState = EngineHotReloadState{
+        dei::EngineState{},
+        engineDependencies,
+    };
+    engineHotReloader.userdata = static_cast<void*>(&engineHotReloadState);
+
     printf("Hot-loadable library: %s\n", engineLibPath.c_str());
 
     // app loop
@@ -238,8 +241,9 @@ auto main(int argc, char *argv[]) -> int {
     auto beginTimeSeconds = dei::platform::GetTimeSec();
     do {
         dei::platform::PollWindowEvents(windowSystem);
-        if (engineState.DrawCounter % updateWindowTitleEvery == 0) {
-            auto&& drawCounterStr = std::to_string(engineState.DrawCounter);
+        auto drawCounter = engineHotReloadState.EngineState.DrawCounter;
+        if (drawCounter % updateWindowTitleEvery == 0) {
+            auto&& drawCounterStr = std::to_string(drawCounter);
             dei::platform::SetSubstringInplace(windowTitle,
                 drawCounterStr.c_str(), WINTITLE_FRAME_OFFSET, WINTITLE_FRAME_SIZE, ' ');
             auto&& timeSecStr = std::to_string(
@@ -249,7 +253,7 @@ auto main(int argc, char *argv[]) -> int {
             dei::platform::WindowSetTitleUtf8(window, windowTitle.c_str());
         }
         {
-            auto doReloadCheck = (engineState.DrawCounter % hotReloadFrequency) == 0;
+            auto doReloadCheck = (drawCounter % hotReloadFrequency) == 0;
             auto engineAnswer = cr_plugin_update(engineHotReloader, doReloadCheck);
             switch (engineAnswer) {
                 case 0: break;
