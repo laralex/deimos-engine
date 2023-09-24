@@ -15,21 +15,25 @@ INCLUDES_EDITOR = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PIL_SRC_ROOT)/include 
 LDFLAGS_ENGINE = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 INCLUDES_ENGINE = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PIL_SRC_ROOT)/include -I$(ENGINE_CORE_SRC_ROOT)/include
 
+INCLUDES_PIL = -I./vendor/glm -I$(ENGINE_PIL_SRC_ROOT)/include
+
 # editor
-$(BUILD_DIR)/$(EDITOR_OUTNAME): $(BUILD_DIR)/$(ENGINE_PIL_OUTNAME) editor/EngineHotLoadHost.cpp
+EDITOR_SRC := ./editor/EngineHotLoadHost.cpp
+$(BUILD_DIR)/$(EDITOR_OUTNAME): $(BUILD_DIR)/$(ENGINE_PIL_OUTNAME) $(EDITOR_SRC:.cpp=.object)
 	clang++ $(CFLAGS) -o $@ $^ $(LDFLAGS_EDITOR) $(INCLUDES_EDITOR)
 
 # dei_platform
 ENGINE_PIL_SRC := $(ENGINE_PIL_SRC_ROOT)/Util.cpp
 ENGINE_PIL_SRC += $(ENGINE_PIL_SRC_ROOT)/Window.cpp
 ENGINE_PIL_SRC += $(ENGINE_PIL_SRC_ROOT)/Monitor.cpp
-$(BUILD_DIR)/$(ENGINE_PIL_OUTNAME): $(ENGINE_PIL_SRC)
-	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) -I$(ENGINE_PIL_SRC_ROOT)/include
+$(BUILD_DIR)/$(ENGINE_PIL_OUTNAME): $(ENGINE_PIL_SRC:.cpp=.object)
+	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) $(INCLUDES_PIL)
 
 # dei
 ENGINE_CORE_SRC := $(ENGINE_CORE_SRC_ROOT)/Camera.cpp
 ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/HotLoadGuest.cpp
-$(BUILD_DIR)/$(ENGINE_CORE_OUTNAME): $(ENGINE_CORE_SRC)
+ENGINE_CORE_SRC += $(ENGINE_CORE_SRC_ROOT)/Entry.cpp
+$(BUILD_DIR)/$(ENGINE_CORE_OUTNAME): $(ENGINE_CORE_SRC:.cpp=.object)
 	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE) $(INCLUDES_ENGINE)
 
 .PHONY: dei

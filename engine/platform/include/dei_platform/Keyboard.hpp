@@ -8,12 +8,12 @@
 
 namespace {
 
-constexpr size_t MODIFIER_CTRL_BIT     = GLFW_MOD_CONTROL;
-constexpr size_t MODIFIER_SHIFT_BIT    = GLFW_MOD_SHIFT;
-constexpr size_t MODIFIER_ALT_BIT      = GLFW_MOD_ALT;
-constexpr size_t MODIFIER_SUPER_BIT    = GLFW_MOD_SUPER;
-constexpr size_t MODIFIER_CAPSLOCK_BIT = GLFW_MOD_CAPS_LOCK;
-constexpr size_t MODIFIER_NUMLOCK_BIT  = GLFW_MOD_NUM_LOCK;
+constexpr u32 MODIFIER_CTRL_BIT     = GLFW_MOD_CONTROL;
+constexpr u32 MODIFIER_SHIFT_BIT    = GLFW_MOD_SHIFT;
+constexpr u32 MODIFIER_ALT_BIT      = GLFW_MOD_ALT;
+constexpr u32 MODIFIER_SUPER_BIT    = GLFW_MOD_SUPER;
+constexpr u32 MODIFIER_CAPSLOCK_BIT = GLFW_MOD_CAPS_LOCK;
+constexpr u32 MODIFIER_NUMLOCK_BIT  = GLFW_MOD_NUM_LOCK;
 
 } // namespace ::
 
@@ -90,6 +90,6 @@ using KeyMap = std::unordered_map<
    pair_hash
 >;
 
-typedef void (*InputTextCallback)(const std::string& currentTextUtf8, uint32_t latestCodepoint);
+typedef void (*InputTextCallback)(const std::string& currentTextUtf8, u32 latestCodepoint);
 
 }

@@ -6,13 +6,13 @@ namespace {
 using namespace dei;
 
 struct WindowState {
-    platform::isize2 Size;
-    platform::isize2 MonitorSize;
+    vec2i Size;
+    vec2i MonitorSize;
     platform::WindowSystemHandle WindowSystem;
     platform::input::KeyMap KeyMap;
     std::string InputTextUtf8;
     platform::GraphicsApi GraphicsApi;
-    bool HasContextObject;
+    b8 HasContextObject;
     platform::WindowPositionCallback WindowPositionCallback;
     platform::WindowResizeCallback WindowResizeCallback;
     platform::WindowClosingCallback WindowClosingCallback;
@@ -24,7 +24,7 @@ struct WindowState {
     platform::input::MouseEntersWindowCallback MouseEntersWindowCallback;
 };
 
-auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> bool {
+auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> b8 {
     return glfwGetKey(window, key) == GLFW_PRESS
         || glfwGetKey(window, keyAlias) == GLFW_PRESS;
 }
@@ -71,7 +71,7 @@ auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
     );
 }
 
-auto TextInputCallback(GLFWwindow* window, uint32_t codepoint) {
+auto TextInputCallback(GLFWwindow* window, u32 codepoint) {
     auto* windowState = GetWindowState(window);
     auto isAppended = dei::platform::AppendToUtf8{}(windowState->InputTextUtf8, codepoint);
     if (!isAppended || windowState->InputTextCallback == nullptr) {
@@ -177,7 +177,7 @@ auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void 
     glfwSetClipboardString(NULL, textUtff8);
 }
 
-auto SetVerticalSync(const WindowSystemHandle&, bool enableVerticalSync) -> void {
+auto SetVerticalSync(const WindowSystemHandle&, b8 enableVerticalSync) -> void {
     glfwSwapInterval(static_cast<int>(enableVerticalSync));
 }
 
@@ -192,18 +192,18 @@ auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
     glfwDestroyWindow(window);
 }
 
-auto WindowBuilder::WithSize(size_t width, size_t height) -> WindowBuilder& {
+auto WindowBuilder::WithSize(u32 width, u32 height) -> WindowBuilder& {
     _args.Size = { (int)width, (int)height };
     return *this;
 }
 
-auto WindowBuilder::WithSizeMin(size_t width, size_t height) -> WindowBuilder& {
+auto WindowBuilder::WithSizeMin(u32 width, u32 height) -> WindowBuilder& {
     _args.WidthMin = width;
     _args.HeightMin = height;
     return *this;
 }
 
-auto WindowBuilder::WithSizeMax(size_t width, size_t height) -> WindowBuilder& {
+auto WindowBuilder::WithSizeMax(u32 width, u32 height) -> WindowBuilder& {
     _args.WidthMax = width;
     _args.HeightMax = height;
     return *this;
@@ -215,7 +215,7 @@ auto WindowBuilder::WithAspectRatioForceCurrent() -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::WithAspectRatio(size_t aspectNumerator, size_t aspectDenominator) -> WindowBuilder& {
+auto WindowBuilder::WithAspectRatio(u32 aspectNumerator, u32 aspectDenominator) -> WindowBuilder& {
     _args.UseAspectRatio = true;
     _args.UseSizeAsAspectRatio = false;
     _args.AspectNumerator = aspectNumerator;
@@ -228,36 +228,36 @@ auto WindowBuilder::WithTitleUtf8(const char* titleUtf8) -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::WithVisible(bool isVisible) -> WindowBuilder& {
+auto WindowBuilder::WithVisible(b8 isVisible) -> WindowBuilder& {
     _args.IsVisible = isVisible;
     return *this;
 }
 
-auto WindowBuilder::WithResizable(bool isResizable) -> WindowBuilder& {
+auto WindowBuilder::WithResizable(b8 isResizable) -> WindowBuilder& {
     _args.IsResizable = isResizable;
     return *this;
 }
 
-auto WindowBuilder::WithDecorated(bool isDecorated) -> WindowBuilder& {
+auto WindowBuilder::WithDecorated(b8 isDecorated) -> WindowBuilder& {
     _args.IsDecorated = isDecorated;
     return *this;
 }
 
-auto WindowBuilder::WithAutoMinimized(bool isAutoMinimized) -> WindowBuilder& {
+auto WindowBuilder::WithAutoMinimized(b8 isAutoMinimized) -> WindowBuilder& {
     _args.IsAutoMinimized = isAutoMinimized;
     return *this;
 }
-auto WindowBuilder::WithTopmost(bool isTopmost) -> WindowBuilder& {
+auto WindowBuilder::WithTopmost(b8 isTopmost) -> WindowBuilder& {
     _args.IsTopmost = isTopmost;
     return *this;
 }
 
-auto WindowBuilder::WithScaleToMonitor(bool isScaleToMonitor) -> WindowBuilder& {
+auto WindowBuilder::WithScaleToMonitor(b8 isScaleToMonitor) -> WindowBuilder& {
     _args.IsScaleToMonitor = isScaleToMonitor;
     return *this;
 }
 
-auto WindowBuilder::WithFocused(bool isWindowFocused) -> WindowBuilder& {
+auto WindowBuilder::WithFocused(b8 isWindowFocused) -> WindowBuilder& {
     _args.IsFocused = isWindowFocused;
     return *this;
 }
@@ -267,7 +267,7 @@ auto WindowBuilder::WithFocusCallback(WindowFocusedCallback callback) -> WindowB
     return *this;
 }
 
-auto WindowBuilder::WithVulkan(size_t versionMajor, size_t versionMinor) -> WindowBuilder& {
+auto WindowBuilder::WithVulkan(u32 versionMajor, u32 versionMinor) -> WindowBuilder& {
     _args.GraphicsApi = GraphicsApi::VULKAN;
     _args.VersionMajor = versionMajor;
     _args.VersionMinor = versionMinor;
@@ -275,7 +275,7 @@ auto WindowBuilder::WithVulkan(size_t versionMajor, size_t versionMinor) -> Wind
     return *this;
 }
 
-auto WindowBuilder::WithOpenGL(size_t versionMajor, size_t versionMinor, ContextCreationApi api) -> WindowBuilder& {
+auto WindowBuilder::WithOpenGL(u32 versionMajor, u32 versionMinor, ContextCreationApi api) -> WindowBuilder& {
     _args.GraphicsApi = GraphicsApi::OPENGL;
     _args.VersionMajor = versionMajor;
     _args.VersionMinor = versionMinor;
@@ -284,7 +284,7 @@ auto WindowBuilder::WithOpenGL(size_t versionMajor, size_t versionMinor, Context
     return *this;
 }
 
-auto WindowBuilder::WithOpenGLES(size_t versionMajor, size_t versionMinor, ContextCreationApi api) -> WindowBuilder& {
+auto WindowBuilder::WithOpenGLES(u32 versionMajor, u32 versionMinor, ContextCreationApi api) -> WindowBuilder& {
     _args.GraphicsApi = GraphicsApi::OPENGLES;
     _args.VersionMajor = versionMajor;
     _args.VersionMinor = versionMinor;
@@ -293,7 +293,7 @@ auto WindowBuilder::WithOpenGLES(size_t versionMajor, size_t versionMinor, Conte
     return *this;
 }
 
-auto WindowBuilder::WithOpenGLSettings(OpenGlProfile openglProfile, bool isForwardCompatible, bool isDebugMode) -> WindowBuilder& {
+auto WindowBuilder::WithOpenGLSettings(OpenGlProfile openglProfile, b8 isForwardCompatible, b8 isDebugMode) -> WindowBuilder& {
     _args.OpenGlProfile = openglProfile;
     _args.IsOpenGlForwardCompatible = isForwardCompatible;
     _args.IsOpenGlDebugMode = isDebugMode;
@@ -305,7 +305,7 @@ auto WindowBuilder::WithKeymap(platform::input::KeyMap&& keymap) -> WindowBuilde
     return *this;
 }
 
-auto WindowBuilder::WithRawMouseMotion(bool isRawMouseMotionUsed) -> WindowBuilder& {
+auto WindowBuilder::WithRawMouseMotion(b8 isRawMouseMotionUsed) -> WindowBuilder& {
     _args.TryRawMouseMotion = isRawMouseMotionUsed;
     return *this;
 }
@@ -350,7 +350,7 @@ auto WindowBuilder::WithClosingCallback(WindowClosingCallback callback) -> Windo
     return *this;
 }
 
-auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor, bool useMonitorSize, bool centerCursor) -> WindowBuilder& {
+auto WindowBuilder::WithFullscreen(const MonitorHandle& monitor, b8 useMonitorSize, b8 centerCursor) -> WindowBuilder& {
     if (monitor == nullptr) {
         return WithWindowed();
     }
@@ -379,12 +379,12 @@ auto WindowBuilder::WithOpacity(float opacity01) -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::WithTransparentFramebuffer(bool isTransparent) -> WindowBuilder& {
+auto WindowBuilder::WithTransparentFramebuffer(b8 isTransparent) -> WindowBuilder& {
     _args.IsTransparentFramebuffer = isTransparent;
     return *this;
 }
 
-auto WindowBuilder::WithColorBitDepth(size_t redBitDepth, size_t greenBitDepth, size_t blueBitDepth, size_t alphaBitDepth) -> WindowBuilder& {
+auto WindowBuilder::WithColorBitDepth(u32 redBitDepth, u32 greenBitDepth, u32 blueBitDepth, u32 alphaBitDepth) -> WindowBuilder& {
     _args.BitDepthRed = redBitDepth;
     _args.BitDepthGreen = greenBitDepth;
     _args.BitDepthBlue = blueBitDepth;
@@ -392,32 +392,32 @@ auto WindowBuilder::WithColorBitDepth(size_t redBitDepth, size_t greenBitDepth, 
     return *this;
 }
 
-auto WindowBuilder::WithStencilBitDepth(size_t stencilBitDepth) -> WindowBuilder& {
+auto WindowBuilder::WithStencilBitDepth(u32 stencilBitDepth) -> WindowBuilder& {
     _args.BitDepthStencil = stencilBitDepth;
     return *this;
 }
 
-auto WindowBuilder::WithDepthBitDepth(size_t depthBitDepth) -> WindowBuilder& {
+auto WindowBuilder::WithDepthBitDepth(u32 depthBitDepth) -> WindowBuilder& {
     _args.BitDepthDepth = depthBitDepth;
     return *this;
 }
 
-auto WindowBuilder::WithSrgb(bool isSrgbCapable) -> WindowBuilder& {
+auto WindowBuilder::WithSrgb(b8 isSrgbCapable) -> WindowBuilder& {
     _args.IsSrgbCapable = isSrgbCapable;
     return *this;
 }
 
-auto WindowBuilder::WithStereoscopicRendering(bool useStereoscopic) -> WindowBuilder& {
+auto WindowBuilder::WithStereoscopicRendering(b8 useStereoscopic) -> WindowBuilder& {
     _args.IsStereoscopicRendering = useStereoscopic;
     return *this;
 }
 
-auto WindowBuilder::WithMultisamplingSamples(size_t numSamples) -> WindowBuilder& {
+auto WindowBuilder::WithMultisamplingSamples(u32 numSamples) -> WindowBuilder& {
     _args.MultisamplingNumSamples = numSamples;
     return *this;
 }
 
-auto WindowBuilder::WithDoublebuffered(bool isDoublebuffered) -> WindowBuilder& {
+auto WindowBuilder::WithDoublebuffered(b8 isDoublebuffered) -> WindowBuilder& {
     _args.IsDoubleBuffered = isDoublebuffered;
     return *this;
 }
@@ -427,8 +427,8 @@ auto WindowBuilder::WithNoErrorMode() -> WindowBuilder& {
     return *this;
 }
 
-auto WindowBuilder::IsValid() const -> bool {
-    return _args.Size.width > 0 && _args.Size.height > 0
+auto WindowBuilder::IsValid() const -> b8 {
+    return _args.Size.x > 0 && _args.Size.y > 0
            && _args.VersionMajor != 0;
 }
 
@@ -437,13 +437,13 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, WindowBuilder&& builde
 }
 
 auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& args) -> std::optional<WindowHandle> {
-    if (args.Size.width == 0 || args.Size.height == 0) {
+    if (args.Size.x == 0 || args.Size.y == 0) {
         return std::nullopt;
     }
     auto* windowState = new WindowState{};
     windowState->HasContextObject = false;
     auto primaryVideoMode = glfwGetVideoMode(args.Monitor != nullptr ? args.Monitor : glfwGetPrimaryMonitor());
-    windowState->MonitorSize = isize2 { primaryVideoMode->width, primaryVideoMode->height };
+    windowState->MonitorSize = vec2i { primaryVideoMode->width, primaryVideoMode->height };
     windowState->Size = args.Size;
     windowState->GraphicsApi = args.GraphicsApi;
     windowState->WindowSystem = windowSystem;
@@ -467,7 +467,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
                 std::exit(1);
             }
             if (args.VersionMajor != 1 || args.VersionMinor > 3) {
-                printf("Unsupported Vulkan version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                printf("Unsupported Vulkan version %d.%d", args.VersionMajor, args.VersionMinor);
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -478,7 +478,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             if (args.VersionMajor < 3
                 || args.VersionMajor == 3 && args.VersionMinor > 3
                 || args.VersionMajor == 4 && args.VersionMinor > 6) {
-                printf("Unsupported OpenGL version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                printf("Unsupported OpenGL version %d.%d", args.VersionMajor, args.VersionMinor);
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -490,7 +490,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
             // FIXME: can't launch on laptop
             if (args.VersionMajor < 3
                 || args.VersionMajor == 3 && args.VersionMinor > 3) {
-                printf("Unsupported OpenGLES version %zu.%zu", args.VersionMajor, args.VersionMinor);
+                printf("Unsupported OpenGLES version %d.%d", args.VersionMajor, args.VersionMinor);
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
@@ -510,8 +510,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     // TODO: maybe more explicit selection of refresh rate
     if (args.Monitor != nullptr && args.UseMonitorSize) {
         glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
-        args.Size.width = primaryVideoMode->width;
-        args.Size.height = primaryVideoMode->height;
+        args.Size.x = primaryVideoMode->width;
+        args.Size.y = primaryVideoMode->height;
     }
     // FIXME: investigate why it still steals focus when passing FALSE
     glfwWindowHint(GLFW_FOCUSED, args.IsFocused);
@@ -545,7 +545,7 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     // x11: GLFW_X11_CLASS_NAME, GLFW_X11_INSTANCE_NAME
 
     auto* window = glfwCreateWindow(
-        args.Size.width, args.Size.height, args.TitleUtf8, args.Monitor, nullptr);
+        args.Size.x, args.Size.y, args.TitleUtf8, args.Monitor, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
@@ -564,8 +564,8 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
         args.HeightMax < (1 << 30) ? args.HeightMax : GLFW_DONT_CARE);
     if (args.UseAspectRatio) {
         if (args.UseSizeAsAspectRatio) {
-            args.AspectNumerator = args.Size.width;
-            args.AspectDenominator = args.Size.height;
+            args.AspectNumerator = args.Size.x;
+            args.AspectDenominator = args.Size.y;
         }
         glfwSetWindowAspectRatio(window, args.AspectNumerator, args.AspectDenominator);
     }
@@ -578,18 +578,18 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     return std::move(windowHandle);
 }
 
-auto WindowIsClosing(const WindowHandle& window) -> bool {
+auto WindowIsClosing(const WindowHandle& window) -> b8 {
     return glfwWindowShouldClose(window.get());
 }
 
-auto WindowGetSize(const WindowHandle& window) -> isize2 {
-    auto size = isize2{};
-    glfwGetWindowSize(window.get(), &size.width, &size.height);
+auto WindowGetSize(const WindowHandle& window) -> vec2i {
+    auto size = vec2i{};
+    glfwGetWindowSize(window.get(), &size.x, &size.y);
     return size;
 }
 
-auto WindowSetSize(const WindowHandle& window, isize2 size) -> void {
-    glfwSetWindowSize(window.get(), size.width, size.height);
+auto WindowSetSize(const WindowHandle& window, vec2i size) -> void {
+    glfwSetWindowSize(window.get(), size.x, size.y);
 }
 
 auto WindowSetTitleUtf8(const WindowHandle& window, const char* titleUtf8) -> void {
@@ -623,13 +623,13 @@ auto WindowUndoInput(const WindowHandle& window) -> void {
     windowState->InputTextUtf8.resize(windowState->InputTextUtf8.size() - 1);
 }
 
-auto WindowGetMousePosition(const WindowHandle& window) -> dvec2 {
-    dvec2 pos;
+auto WindowGetMousePosition(const WindowHandle& window) -> vec2ff {
+    vec2ff pos;
     glfwGetCursorPos(window.get(), &pos.x, &pos.y);
     return pos;
 }
 
-auto WindowGetMousePosition(const WindowHandle& window, dvec2& destination) -> void {
+auto WindowGetMousePosition(const WindowHandle& window, vec2ff& destination) -> void {
     glfwGetCursorPos(window.get(), &destination.x, &destination.y);
 }
 
@@ -676,14 +676,14 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
     return surface;
 }
 
-auto WindowVulkanGetRequiredExtensionsCount(const WindowHandle&) -> std::uint32_t {
-    uint32_t glfwExtensionCount;
+auto WindowVulkanGetRequiredExtensionsCount(const WindowHandle&) -> u32 {
+    u32 glfwExtensionCount;
     auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     return glfwExtensionCount;
 }
 
 auto WindowVulkanGetRequiredExtensions(const WindowHandle&) -> const char ** {
-    uint32_t glfwExtensionCount;
+    u32 glfwExtensionCount;
     auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     return glfwExtensions;
 }
@@ -706,32 +706,32 @@ auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor
 }
 
 // TODO: make more obvious selection of refresh rate
-auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, isize2 size) -> void {
+auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, vec2u size) -> void {
     WindowToFullscreen(window, monitor,
         size, GLFW_DONT_CARE);
 }
-auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, isize2 size, int refreshRate) -> void {
+auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, vec2u size, u32 refreshRate) -> void {
     if (monitor == nullptr) {
         return;
     }
     glfwSetWindowMonitor(window.get(), monitor, 0, 0,
-        size.width, size.height, refreshRate);
+        size.x, size.y, refreshRate);
 }
 
 auto WindowToWindowed(const WindowHandle& window) -> void {
     auto windowSize = GetWindowState(window)->Size;
-    ivec2 windowPos;
+    vec2i windowPos;
     // FIXME: after first switch to fullscreen, windowPos will be zeros,
     // i.e. it won't remember old window position
     glfwGetWindowPos(window.get(), &windowPos.x, &windowPos.y);
     glfwSetWindowMonitor(window.get(), nullptr, windowPos.x, windowPos.y,
-        windowSize.width, windowSize.height, 0);
+        windowSize.x, windowSize.y, 0);
 }
 
 auto WindowToWindowedBorderless(const WindowHandle& window) -> void {
     auto desktopResolution = GetWindowState(window)->MonitorSize;
     glfwSetWindowMonitor(window.get(), nullptr, 0, 0,
-        desktopResolution.width, desktopResolution.height, 0);
+        desktopResolution.x, desktopResolution.y, 0);
 }
 
 auto WindowSetFullscreenMode(const WindowHandle& window, FullscreenMode fullscreenMode, const MonitorHandle& monitor) -> void {
@@ -748,7 +748,7 @@ auto WindowSetFullscreenMode(const WindowHandle& window, FullscreenMode fullscre
     }
 }
 
-auto WindowSetVisible(const WindowHandle& window, bool makeVisible) -> void {
+auto WindowSetVisible(const WindowHandle& window, b8 makeVisible) -> void {
     if (makeVisible) {
         glfwShowWindow(window.get());
     } else {
@@ -756,15 +756,15 @@ auto WindowSetVisible(const WindowHandle& window, bool makeVisible) -> void {
     }
 }
 
-auto WindowIsVisible(const WindowHandle& window) -> bool {
+auto WindowIsVisible(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_VISIBLE);
 }
 
-auto WindowIsFocused(const WindowHandle& window) -> bool {
+auto WindowIsFocused(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED);
 }
 
-auto WindowIsHovered(const WindowHandle& window) -> bool {
+auto WindowIsHovered(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_HOVERED);
 }
 
@@ -783,43 +783,43 @@ auto WindowGetOpacity(const WindowHandle& window) -> float {
     return glfwGetWindowOpacity(window.get());
 }
 
-auto WindowSetIsResizable(const WindowHandle& window, bool makeResizable) -> void {
+auto WindowSetIsResizable(const WindowHandle& window, b8 makeResizable) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_RESIZABLE, makeResizable);
 }
 
-auto WindowIsResizable(const WindowHandle& window) -> bool {
+auto WindowIsResizable(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_RESIZABLE);
 }
 
-auto WindowSetIsTopmost(const WindowHandle& window, bool makeFloating) -> void {
+auto WindowSetIsTopmost(const WindowHandle& window, b8 makeFloating) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_FLOATING, makeFloating);
 }
 
-auto WindowIsTopmost(const WindowHandle& window) -> bool {
+auto WindowIsTopmost(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_FLOATING);
 }
 
-auto WindowSetIsDecorated(const WindowHandle& window, bool makeDecorated) -> void {
+auto WindowSetIsDecorated(const WindowHandle& window, b8 makeDecorated) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_DECORATED, makeDecorated); 
 }
 
-auto WindowIsDecorated(const WindowHandle& window) -> bool {
+auto WindowIsDecorated(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_DECORATED);
 }
 
-auto WindowSetIsAutoMinimized(const WindowHandle& window, bool makeAutoMinimized) -> void {
+auto WindowSetIsAutoMinimized(const WindowHandle& window, b8 makeAutoMinimized) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY, makeAutoMinimized);
 }
 
-auto WindowIsAutoMinimized(const WindowHandle& window) -> bool {
+auto WindowIsAutoMinimized(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_AUTO_ICONIFY);
 }
 
-auto WindowSetIsFocusedAfterVisible(const WindowHandle& window, bool makeFocusedAfterVisible) -> void {
+auto WindowSetIsFocusedAfterVisible(const WindowHandle& window, b8 makeFocusedAfterVisible) -> void {
     glfwSetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW, makeFocusedAfterVisible);
 }
 
-auto WindowIsFocusedAfterVisible(const WindowHandle& window) -> bool {
+auto WindowIsFocusedAfterVisible(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
 }
 
@@ -845,15 +845,15 @@ auto WindowContextGetVersion(const WindowHandle& window, int& major, int& minor,
     revision = glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_REVISION);
 }
 
-auto WindowContextIsDebugMode(const WindowHandle& window) -> bool {
+auto WindowContextIsDebugMode(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_FOCUS_ON_SHOW);
 }
 
-auto WindowContextIsForwardCompatible(const WindowHandle& window) -> bool {
+auto WindowContextIsForwardCompatible(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_OPENGL_FORWARD_COMPAT);
 }
 
-auto WindowContextIsNoErrorMode(const WindowHandle& window) -> bool {
+auto WindowContextIsNoErrorMode(const WindowHandle& window) -> b8 {
     return glfwGetWindowAttrib(window.get(), GLFW_CONTEXT_NO_ERROR);
 }
 

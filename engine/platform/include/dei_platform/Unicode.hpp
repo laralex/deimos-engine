@@ -30,7 +30,7 @@ struct ConvertUtf32Utf8
 
 struct AppendToUtf8
 {
-  auto operator()(std::string& dest, int32_t codepoint) -> bool
+  auto operator()(std::string& dest, int32_t codepoint) -> b8
   {
     char32_t source = codepoint;
     char32_t const* sourceNext = &source;

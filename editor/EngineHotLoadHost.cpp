@@ -20,7 +20,7 @@ struct EngineHotReloadState {
     dei::EngineDependencies EngineDependencies;
 };
 
-auto OnTextInput(const std::string& currentInputUtf8, uint32_t latestCodepoint) {
+auto OnTextInput(const std::string& currentInputUtf8, u32 latestCodepoint) {
     std::cout << currentInputUtf8 << '\n';
 }
 
@@ -41,7 +41,7 @@ auto OnMouseScrolled(double directionX, double directionY) {
     //std::cout << '[' << directionX << ',' << directionY << "]\n";
 }
 
-auto OnMouseEnteredWindow(bool entered) {
+auto OnMouseEnteredWindow(b8 entered) {
     std::cout << (entered ? "MOUSE ENTERED" : "MOUSE LEFT") << std::endl;
 }
 
@@ -67,7 +67,7 @@ auto OnWindowClosing() {
     printf("GLFW Window closing\n");
 }
 
-auto OnWindowFocused(bool isFocused) {
+auto OnWindowFocused(b8 isFocused) {
     printf("Window focused: %d\n", isFocused);
 }
 
@@ -93,7 +93,7 @@ auto main(int argc, char *argv[]) -> int {
     auto monitorInfo = *dei::platform::MonitorQueryInfo(windowSystem, primaryMonitor);
 
     printf("Monitor info: %s (size millimeters %dx%d)\n", monitorInfo.Name,
-        monitorInfo.WorkareaSize.width, monitorInfo.WorkareaSize.height);
+        monitorInfo.WorkareaSize.x, monitorInfo.WorkareaSize.y);
     if (monitorInfo.NumVideoModes > 0) {
         auto videoMode = monitorInfo.VideoModes[monitorInfo.NumVideoModes - 1];
         printf("Monitor video mode: %dx%d %d Hz, bits R=%d G=%d B=%d\n",
@@ -181,7 +181,7 @@ auto main(int argc, char *argv[]) -> int {
                 currentOpacity >= 1.0f ? 0.5f : 1.0f );
         }},
         {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
-            static bool isVerticalSyncEnabled = false;
+            static b8 isVerticalSyncEnabled = false;
             if (state != KeyState::PRESS) return;
             isVerticalSyncEnabled ^= 1;
             dei::platform::SetVerticalSync(windowSystem, isVerticalSyncEnabled);
@@ -189,7 +189,7 @@ auto main(int argc, char *argv[]) -> int {
         {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
             using dei::platform::input::CursorMode;
             if (state != KeyState::PRESS) return;
-            bool shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
+            b8 shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
             dei::platform::WindowSetCursorMode(window,
                 shouldEnableCursor ? CursorMode::NORMAL : CursorMode::DISABLED
             );
@@ -269,7 +269,7 @@ auto main(int argc, char *argv[]) -> int {
         auto nowSeconds = dei::platform::GetTimeSec();
         auto deltaSeconds = nowSeconds - beginTimeSeconds;
         if (deltaSeconds < TICK_CAP_SECONDS) {
-            auto remainingMillisec = static_cast<uint32_t>(1000.0*(TICK_CAP_SECONDS - deltaSeconds)) ;
+            auto remainingMillisec = static_cast<u32>(1000.0*(TICK_CAP_SECONDS - deltaSeconds)) ;
             if (remainingMillisec > 0) {
                 dei::platform::ThreadSleepMs(remainingMillisec);
             }

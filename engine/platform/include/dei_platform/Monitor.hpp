@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Prelude.hpp"
+#include "TypesVec.hpp"
+
 #include <vector>
 #include <optional>
 
@@ -13,11 +15,11 @@ using MonitorGammaRamp = const GLFWgammaramp*;
 
 struct MonitorInfo {
    const char* Name;
-   isize2 SizeMillimeters;
-   vec2 ContentScale;
-   ivec2 VirtualPosition;
-   ivec2 WorkareaPosition;
-   isize2 WorkareaSize;
+   vec2i SizeMillimeters;
+   vec2f ContentScale;
+   vec2i VirtualPosition;
+   vec2i WorkareaPosition;
+   vec2i WorkareaSize;
 
    MonitorGammaRamp GammaRamp;
    MonitorVideoMode VideoModes;

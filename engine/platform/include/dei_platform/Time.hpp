@@ -81,13 +81,13 @@ inline auto GetElapsedNanosec(const SystemClock& begin) -> std::int64_t {
     return (end.QuadPart-begin.time.QuadPart) / begin.frequency.QuadPart;
 }
 
-inline auto ThreadSleepMs(uint32_t ms) -> void {
+inline auto ThreadSleepMs(u32 ms) -> void {
     Sleep( ms );
 }
 
 #elif defined(DEI_LINUX)
 
-auto ThreadSleepMs(uint32_t ms) -> void {
+auto ThreadSleepMs(u32 ms) -> void {
     usleep( ms * 1000 );
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dei_platform/TypesFwd.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -25,7 +27,7 @@ auto StringJoin(Args... args) -> std::string {
     return ss.str();
 }
 
-auto SetSubstringInplace(std::string& destination, const char* source, size_t offset, size_t size, char padValue) -> void;
+auto SetSubstringInplace(std::string& destination, const char* source, u32 offset, u32 size, char padValue) -> void;
 auto MakeLibraryFilepath(const char* directoryPath, const char* basename) -> std::string;
 
 }
