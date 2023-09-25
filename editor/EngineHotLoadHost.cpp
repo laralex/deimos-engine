@@ -9,6 +9,7 @@
 using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
+#define CR_DEBUG
 #include <cr.h>
 
 #include <cassert>

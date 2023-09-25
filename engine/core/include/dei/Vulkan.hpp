@@ -23,6 +23,6 @@ struct VulkanContext {
 
 auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtensionsCount) -> VkInstance;
 
-auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<u32>;
+auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<u32>;
 
 } // namespace dei

@@ -46,7 +46,65 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     std::cout << "Created VkInstance: " << vkInstance
               << " VkSurfaceKHR: " << vkSurface << std::endl;
 
-    //dei::render::GetVulkanPhysicalDevices(destinationState.VulkanInstance);
+    VkPhysicalDeviceFeatures requiredDeviceFeatures;
+    requiredDeviceFeatures.robustBufferAccess                         = false;
+    requiredDeviceFeatures.fullDrawIndexUint32                        = false;
+    requiredDeviceFeatures.imageCubeArray                             = false;
+    requiredDeviceFeatures.independentBlend                           = false;
+    requiredDeviceFeatures.geometryShader                             = false;
+    requiredDeviceFeatures.tessellationShader                         = false;
+    requiredDeviceFeatures.sampleRateShading                          = false;
+    requiredDeviceFeatures.dualSrcBlend                               = false;
+    requiredDeviceFeatures.logicOp                                    = false;
+    requiredDeviceFeatures.multiDrawIndirect                          = false;
+    requiredDeviceFeatures.drawIndirectFirstInstance                  = false;
+    requiredDeviceFeatures.depthClamp                                 = false;
+    requiredDeviceFeatures.depthBiasClamp                             = false;
+    requiredDeviceFeatures.fillModeNonSolid                           = false;
+    requiredDeviceFeatures.depthBounds                                = false;
+    requiredDeviceFeatures.wideLines                                  = false;
+    requiredDeviceFeatures.largePoints                                = false;
+    requiredDeviceFeatures.alphaToOne                                 = false;
+    requiredDeviceFeatures.multiViewport                              = false;
+    requiredDeviceFeatures.samplerAnisotropy                          = true;
+    requiredDeviceFeatures.textureCompressionETC2                     = false;
+    requiredDeviceFeatures.textureCompressionASTC_LDR                 = false;
+    requiredDeviceFeatures.textureCompressionBC                       = false;
+    requiredDeviceFeatures.occlusionQueryPrecise                      = false;
+    requiredDeviceFeatures.pipelineStatisticsQuery                    = false;
+    requiredDeviceFeatures.vertexPipelineStoresAndAtomics             = false;
+    requiredDeviceFeatures.fragmentStoresAndAtomics                   = false;
+    requiredDeviceFeatures.shaderTessellationAndGeometryPointSize     = false;
+    requiredDeviceFeatures.shaderImageGatherExtended                  = false;
+    requiredDeviceFeatures.shaderStorageImageExtendedFormats          = false;
+    requiredDeviceFeatures.shaderStorageImageMultisample              = false;
+    requiredDeviceFeatures.shaderStorageImageReadWithoutFormat        = false;
+    requiredDeviceFeatures.shaderStorageImageWriteWithoutFormat       = false;
+    requiredDeviceFeatures.shaderUniformBufferArrayDynamicIndexing    = false;
+    requiredDeviceFeatures.shaderSampledImageArrayDynamicIndexing     = false;
+    requiredDeviceFeatures.shaderStorageBufferArrayDynamicIndexing    = false;
+    requiredDeviceFeatures.shaderStorageImageArrayDynamicIndexing     = false;
+    requiredDeviceFeatures.shaderClipDistance                         = false;
+    requiredDeviceFeatures.shaderCullDistance                         = false;
+    requiredDeviceFeatures.shaderFloat64                              = false;
+    requiredDeviceFeatures.shaderInt64                                = false;
+    requiredDeviceFeatures.shaderInt16                                = false;
+    requiredDeviceFeatures.shaderResourceResidency                    = false;
+    requiredDeviceFeatures.shaderResourceMinLod                       = false;
+    requiredDeviceFeatures.sparseBinding                              = false;
+    requiredDeviceFeatures.sparseResidencyBuffer                      = false;
+    requiredDeviceFeatures.sparseResidencyImage2D                     = false;
+    requiredDeviceFeatures.sparseResidencyImage3D                     = false;
+    requiredDeviceFeatures.sparseResidency2Samples                    = false;
+    requiredDeviceFeatures.sparseResidency4Samples                    = false;
+    requiredDeviceFeatures.sparseResidency8Samples                    = false;
+    requiredDeviceFeatures.sparseResidency16Samples                   = false;
+    requiredDeviceFeatures.sparseResidencyAliased                     = false;
+    requiredDeviceFeatures.variableMultisampleRate                    = false;
+    requiredDeviceFeatures.inheritedQueries                           = false;
+    dei::render::GetVulkanPhysicalDevices(
+        destinationState.VulkanInstance,
+        requiredDeviceFeatures);
 
     return true;
 }

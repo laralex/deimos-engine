@@ -86,7 +86,8 @@ build: $(BUILD_DIR) $(BUILD_DIR)/$(ENGINE_PLTFM_OUTNAME) $(BUILD_DIR)/$(ENGINE_C
 
 .PHONY: run
 run: build
-	$(BUILD_DIR)/$(EDITOR_OUTNAME) $(shell pwd)/$(BUILD_DIR) $(ENGINE_BASENAME)
+	@echo "\n=== RUNNING == $(BUILD_DIR)/$(EDITOR_OUTNAME) =="
+	@$(BUILD_DIR)/$(EDITOR_OUTNAME) $(shell pwd)/$(BUILD_DIR) $(ENGINE_BASENAME)
 
 .PHONY: rm
 rm:
