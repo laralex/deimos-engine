@@ -46,6 +46,8 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     std::cout << "Created VkInstance: " << vkInstance
               << " VkSurfaceKHR: " << vkSurface << std::endl;
 
+    //dei::render::GetVulkanPhysicalDevices(destinationState.VulkanInstance);
+
     return true;
 }
 

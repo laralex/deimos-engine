@@ -1,4 +1,5 @@
 BUILD_DIR = ./build/$(if $(DEBUG),debug,release)
+CXX := ./ccache clang++
 
 ENGINE_BASENAME ?= dei
 ENGINE_CORE_OUTNAME ?= lib$(ENGINE_BASENAME).so
@@ -10,6 +11,7 @@ ENGINE_PLTFM_OBJ_ROOT ?= $(BUILD_DIR)/$(ENGINE_PLTFM_SRC_ROOT)
 EDITOR_OUTNAME ?= Editor_DevelEngine.exe
 EDITOR_SRC_ROOT ?= ./editor
 EDITOR_OBJ_ROOT ?= $(BUILD_DIR)/$(EDITOR_SRC_ROOT)
+OBJ_EXTENSION ?= object
 
 CFLAGS = $(if $(DEBUG),-O0 -g, -O2) -std=c++17
 
@@ -23,48 +25,60 @@ INCLUDES_PLTFM = -I./vendor/glm -I$(ENGINE_PLTFM_SRC_ROOT)/include
 
 # editor
 EDITOR_SRC := EngineHotLoadHost.cpp
-EDITOR_OBJ := $(addprefix $(EDITOR_OBJ_ROOT)/, $(EDITOR_SRC:.cpp=.o))
+EDITOR_OBJ := $(addprefix $(EDITOR_OBJ_ROOT)/, $(EDITOR_SRC:.cpp=.$(OBJ_EXTENSION)))
 EDITOR_SRC := $(addprefix $(EDITOR_SRC_ROOT)/, $(EDITOR_SRC))
 # -- .cpp from source dir -> .o object files in build dir
-$(EDITOR_OBJ): $(EDITOR_OBJ_ROOT)/%.o: $(EDITOR_SRC_ROOT)/%.cpp
+$(EDITOR_OBJ): $(EDITOR_OBJ_ROOT)/%.$(OBJ_EXTENSION): $(EDITOR_SRC_ROOT)/%.cpp
 	mkdir -p $(EDITOR_OBJ_ROOT)
-	clang++ $(CFLAGS) -c $< -o $@ $(INCLUDES_EDITOR)
+	$(CXX) $(CFLAGS) -c $< -o $@ $(INCLUDES_EDITOR)
 
 # -- .o from build dir -> executable in build dir
 $(BUILD_DIR)/$(EDITOR_OUTNAME): $(EDITOR_OBJ) $(BUILD_DIR)/$(ENGINE_PLTFM_OUTNAME)
-	clang++ $(CFLAGS) -o $@ $^ $(LDFLAGS_EDITOR)
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS_EDITOR)
 
 # dei_platform
 ENGINE_PLTFM_SRC := Util.cpp
 ENGINE_PLTFM_SRC += Window.cpp
 ENGINE_PLTFM_SRC += Monitor.cpp
-ENGINE_PLTFM_OBJ := $(addprefix $(ENGINE_PLTFM_OBJ_ROOT)/, $(ENGINE_PLTFM_SRC:.cpp=.o))
+ENGINE_PLTFM_OBJ := $(addprefix $(ENGINE_PLTFM_OBJ_ROOT)/, $(ENGINE_PLTFM_SRC:.cpp=.$(OBJ_EXTENSION)))
 ENGINE_PLTFM_SRC := $(addprefix $(ENGINE_PLTFM_SRC_ROOT)/, $(ENGINE_PLTFM_SRC))
-# -- .cpp from source dir -> .o object files in build dir
-#$(error @@ $(ENGINE_PLTFM_OBJ) @@ $(ENGINE_PLTFM_SRC))
-$(ENGINE_PLTFM_OBJ): $(ENGINE_PLTFM_OBJ_ROOT)/%.o: $(ENGINE_PLTFM_SRC_ROOT)/%.cpp
+# -- .cpp from source dir -> .o  object files in build dir
+$(ENGINE_PLTFM_OBJ): $(ENGINE_PLTFM_OBJ_ROOT)/%.$(OBJ_EXTENSION): $(ENGINE_PLTFM_SRC_ROOT)/%.cpp
 	mkdir -p $(ENGINE_PLTFM_OBJ_ROOT)
-	clang++ $(CFLAGS) -fpic -c $< -o $@ $(INCLUDES_PLTFM)
-# -- .o from build dir -> shared lib in build dir
+	$(CXX) $(CFLAGS) -fpic -c $< -o $@ $(INCLUDES_PLTFM)
+# -- .o  from build dir -> shared lib in build dir
 $(BUILD_DIR)/$(ENGINE_PLTFM_OUTNAME): $(ENGINE_PLTFM_OBJ)
-	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE)
+	$(CXX) $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE)
 
 # dei
 ENGINE_CORE_SRC := Camera.cpp
 ENGINE_CORE_SRC += HotLoadGuest.cpp
 ENGINE_CORE_SRC += Entry.cpp
-ENGINE_CORE_OBJ := $(addprefix $(ENGINE_CORE_OBJ_ROOT)/, $(ENGINE_CORE_SRC:.cpp=.o))
+ENGINE_CORE_SRC += Vulkan.cpp
+ENGINE_CORE_OBJ := $(addprefix $(ENGINE_CORE_OBJ_ROOT)/, $(ENGINE_CORE_SRC:.cpp=.$(OBJ_EXTENSION)))
 ENGINE_CORE_SRC := $(addprefix $(ENGINE_CORE_SRC_ROOT)/, $(ENGINE_CORE_SRC))
-# -- .cpp from source dir -> .o object files in build dir
-$(ENGINE_CORE_OBJ): $(ENGINE_CORE_OBJ_ROOT)/%.o: $(ENGINE_CORE_SRC_ROOT)/%.cpp
+
+# ENGINE_CORE_PPCPP := $(addprefix $(ENGINE_CORE_OBJ_ROOT)/, $(ENGINE_CORE_SRC:.cpp=.$(PREPROCESSED_EXTENSION)))
+# -- .cpp from source dir -> .ppcpp source code with all applied preprocessor
+# .PHONY: $(ENGINE_CORE_PPCPP)
+# $(ENGINE_CORE_PPCPP): $(ENGINE_CORE_OBJ_ROOT)/%.$(PREPROCESSED_EXTENSION): $(ENGINE_CORE_SRC_ROOT)/%.cpp
+# 	mkdir -p $(ENGINE_CORE_OBJ_ROOT)
+# 	$(CXX) $(CFLAGS) -E $< -o $@ $(INCLUDES_ENGINE)
+# -- .cpp from source dir -> .o  object files in build dir
+$(ENGINE_CORE_OBJ): $(ENGINE_CORE_OBJ_ROOT)/%.$(OBJ_EXTENSION): $(ENGINE_CORE_SRC_ROOT)/%.cpp
 	mkdir -p $(ENGINE_CORE_OBJ_ROOT)
-	clang++ $(CFLAGS) -fpic -c $< -o $@ $(INCLUDES_ENGINE)
-# -- .o from build dir -> shared lib in build dir
+	$(CXX) $(CFLAGS) -fPIC -c $< -o $@ $(INCLUDES_ENGINE)
+# -- .o  from build dir -> shared lib in build dir
 $(BUILD_DIR)/$(ENGINE_CORE_OUTNAME): $(ENGINE_CORE_OBJ)
-	clang++ $(CFLAGS) -shared -fpic -o $@ $^ $(LDFLAGS_ENGINE)
+	$(CXX) $(CFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS_ENGINE)
+
+ifneq ($(f),) # force rebulid
+.PHONY: $(ENGINE_CORE_OBJ) $(ENGINE_PLTFM_OBJ) $(EDITOR_OBJ)
+endif
 
 .PHONY: dei
 dei: $(BUILD_DIR)
+# $(if $(f),--always-make,)
 	$(MAKE) $(BUILD_DIR)/$(ENGINE_CORE_OUTNAME)
 
 .PHONY: build
@@ -79,8 +93,8 @@ rm:
 	rm -rf $(BUILD_DIR)/$(subst .,*.,$(ENGINE_CORE_OUTNAME)) \
 			 $(BUILD_DIR)/$(subst .,*.,$(ENGINE_PLTFM_OUTNAME)) \
 			 $(BUILD_DIR)/$(subst .,*.,$(EDITOR_OUTNAME)) \
-			 $(BUILD_DIR)/**/*.o \
-			 $(BUILD_DIR)/**/*.object \
+			 $(BUILD_DIR)/**/*.$(OBJ_EXTENSION) \
+			 find $(BUILD_DIR) -name '*.$(OBJ_EXTENSION)' -delete \
 
 
 .PHONY: install_linux
@@ -88,6 +102,12 @@ install_linux: vendor/glm vendor/cr
 	sudo apt update
 	sudo apt install vulkan-tools libvulkan-dev vulkan-validationlayers-dev
 	sudo apt install libglfw3-dev
+	wget https://github.com/ccache/ccache/releases/download/v4.8.3/ccache-4.8.3-linux-x86_64.tar.xz \
+		-O ccache.tar.xz && mkdir -p ccache_prebuilt \
+		&& tar -xJf ccache.tar.xz --directory ccache_prebuilt \
+		&& cp ccache_prebuilt/*/ccache . \
+		&& rm -rf ccache_prebuilt
+
 
 vendor/cr:
 	git submodule add -b master https://github.com/fungos/cr.git vendor/cr
