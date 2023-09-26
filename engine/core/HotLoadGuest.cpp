@@ -18,12 +18,15 @@ static HotReloadState* state{nullptr};
 
 inline auto OnHotLoad(cr_plugin *ctx) -> int {
     std::cout << "cr::OnHotLoad() v" << ctx->version << " e" << ctx->failure << '\n';
+    int err = 0;
     if (state == nullptr) {
         state = reinterpret_cast<HotReloadState*>(ctx->userdata);
-        return dei::EngineColdStartup(state->EngineState, state->EngineDependencies) == false;
+        err = err || (dei::EngineColdStartup(state->EngineState, state->EngineDependencies) == false);
+        err = err || (dei::EngineHotStartup(state->EngineState) == false);
     } else {
-        return dei::EngineHotStartup(state->EngineState) == false;
+        err = err || (dei::EngineHotStartup(state->EngineState) == false);
     }
+    return err;
 }
 
 inline auto OnUpdate(cr_plugin *ctx) -> int {

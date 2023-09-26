@@ -102,10 +102,17 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     requiredDeviceFeatures.sparseResidencyAliased                     = false;
     requiredDeviceFeatures.variableMultisampleRate                    = false;
     requiredDeviceFeatures.inheritedQueries                           = false;
-    dei::render::GetVulkanPhysicalDevices(
+    auto maybeDevices = dei::render::GetVulkanPhysicalDevices(
         destinationState.VulkanInstance,
         requiredDeviceFeatures);
+    assert(maybeDevices);
+    auto& physicalDevices = *maybeDevices;
 
+    // TODO: add multi device rendering
+    destinationState.PhysicalDevice = physicalDevices.begin()->Device;
+    std::cout << "Selected physical device: "
+        << physicalDevices.begin()->Properties.deviceName << " ("
+        << physicalDevices.begin()->DeviceTypeAsString << ") !!!\n";
     return true;
 }
 

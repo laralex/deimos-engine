@@ -16,6 +16,7 @@ struct EngineState {
     u32 DrawCounter{0};
     VkSurfaceKHR WindowSurface;
     VkInstance VulkanInstance;
+    VkPhysicalDevice PhysicalDevice;
 };
 
 }

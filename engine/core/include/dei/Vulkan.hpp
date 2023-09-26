@@ -24,9 +24,11 @@ struct VulkanContext {
 auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtensionsCount) -> VkInstance;
 
 struct PhysicalDevice {
-	VkPhysicalDevice device;
-	VkPhysicalDeviceFeatures features;
-	VkPhysicalDeviceProperties properties;
+	VkPhysicalDevice Device;
+	VkPhysicalDeviceFeatures Features;
+	VkPhysicalDeviceProperties Properties;
+	const char* VendorAsString;
+	const char* DeviceTypeAsString;
 };
 
 auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<std::vector<PhysicalDevice>>;

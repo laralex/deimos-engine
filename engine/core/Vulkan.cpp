@@ -129,11 +129,16 @@ auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<std::vector<
       vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
       auto deviceFeatures = VkPhysicalDeviceFeatures{};
       vkGetPhysicalDeviceFeatures(physicalDevices[i], &deviceFeatures);
-      physicalDeviceInfos[i] = PhysicalDevice {
-         physicalDevices[i],
-         deviceFeatures,
-         deviceProperties,
-      };
+      physicalDeviceInfos[i] = PhysicalDevice {};
+      physicalDeviceInfos[i].Device = physicalDevices[i];
+      physicalDeviceInfos[i].Features = deviceFeatures;
+      physicalDeviceInfos[i].Properties = deviceProperties;
+      physicalDeviceInfos[i].VendorAsString = GetVkPhysicalDeviceVendorStr(deviceProperties.vendorID);
+
+      physicalDeviceInfos[i].DeviceTypeAsString = "UNKNOWN";
+      if (deviceProperties.deviceType < sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*)) {
+         physicalDeviceInfos[i].DeviceTypeAsString = VkPhysicalDeviceTypeToStr[deviceProperties.deviceType];
+      }
    }
    return physicalDeviceInfos;
 }
@@ -147,23 +152,19 @@ auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeature
    auto satisfiedDevices = std::vector<PhysicalDevice>(allDevices.size());
    auto numSatisfiedDevices = u32{0};
    for (const auto& deviceInfo : allDevices) {
-      auto deviceTypeStr = "UNKNOWN";
-      if (deviceInfo.properties.deviceType < sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*)) {
-         deviceTypeStr = VkPhysicalDeviceTypeToStr[deviceInfo.properties.deviceType];
-      }
-      printf("Physical device: %s\n", deviceTypeStr);
-      printf(" - Vendor       : %s\n", GetVkPhysicalDeviceVendorStr(deviceInfo.properties.vendorID));
-      printf(" - Name         : %s\n", deviceInfo.properties.deviceName);
-      printf(" - Version      : %zu\n", deviceInfo.properties.driverVersion);
+      printf("Physical device: %s\n", deviceInfo.DeviceTypeAsString);
+      printf(" - Vendor       : %s\n", deviceInfo.VendorAsString);
+      printf(" - Name         : %s\n", deviceInfo.Properties.deviceName);
+      printf(" - Version      : %zu\n", deviceInfo.Properties.driverVersion);
       printf(" - API Version  : %zu.%zu.%zu\n",
-        VK_API_VERSION_MAJOR(deviceInfo.properties.apiVersion),
-        VK_API_VERSION_MINOR(deviceInfo.properties.apiVersion),
-        VK_API_VERSION_PATCH(deviceInfo.properties.apiVersion));
+        VK_API_VERSION_MAJOR(deviceInfo.Properties.apiVersion),
+        VK_API_VERSION_MINOR(deviceInfo.Properties.apiVersion),
+        VK_API_VERSION_PATCH(deviceInfo.Properties.apiVersion));
       printf(" - Max Framebuffer : %zu x %zu\n",
-         deviceInfo.properties.limits.maxFramebufferWidth,
-         deviceInfo.properties.limits.maxFramebufferHeight);
+         deviceInfo.Properties.limits.maxFramebufferWidth,
+         deviceInfo.Properties.limits.maxFramebufferHeight);
 
-      b8 allFeaturesSatisfied = VerifyVkPhysicalFeatures(requiredFeatures, deviceInfo.features);
+      b8 allFeaturesSatisfied = VerifyVkPhysicalFeatures(requiredFeatures, deviceInfo.Features);
       printf(" - Features satisfied  : %d\n", allFeaturesSatisfied);
 
       if (allFeaturesSatisfied) {
