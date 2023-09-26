@@ -26,6 +26,64 @@ constexpr const char* GetVkPhysicalDeviceVendorStr(u32 vendorId) {
    return "VENDOR_UNKNOWN";
 }
 
+b8 VerifyVkPhysicalFeatures(const VkPhysicalDeviceFeatures& required, const VkPhysicalDeviceFeatures& actual) {
+   return DEI_FIELD_SATISFIED(required, actual, robustBufferAccess) &&
+         DEI_FIELD_SATISFIED(required, actual, fullDrawIndexUint32) &&
+         DEI_FIELD_SATISFIED(required, actual, imageCubeArray) &&
+         DEI_FIELD_SATISFIED(required, actual, independentBlend) &&
+         DEI_FIELD_SATISFIED(required, actual, geometryShader) &&
+         DEI_FIELD_SATISFIED(required, actual, tessellationShader) &&
+         DEI_FIELD_SATISFIED(required, actual, sampleRateShading) &&
+         DEI_FIELD_SATISFIED(required, actual, dualSrcBlend) &&
+         DEI_FIELD_SATISFIED(required, actual, logicOp) &&
+         DEI_FIELD_SATISFIED(required, actual, multiDrawIndirect) &&
+         DEI_FIELD_SATISFIED(required, actual, drawIndirectFirstInstance) &&
+         DEI_FIELD_SATISFIED(required, actual, depthClamp) &&
+         DEI_FIELD_SATISFIED(required, actual, depthBiasClamp) &&
+         DEI_FIELD_SATISFIED(required, actual, fillModeNonSolid) &&
+         DEI_FIELD_SATISFIED(required, actual, depthBounds) &&
+         DEI_FIELD_SATISFIED(required, actual, wideLines) &&
+         DEI_FIELD_SATISFIED(required, actual, largePoints) &&
+         DEI_FIELD_SATISFIED(required, actual, alphaToOne) &&
+         DEI_FIELD_SATISFIED(required, actual, multiViewport) &&
+         DEI_FIELD_SATISFIED(required, actual, samplerAnisotropy) &&
+         DEI_FIELD_SATISFIED(required, actual, textureCompressionETC2) &&
+         DEI_FIELD_SATISFIED(required, actual, textureCompressionASTC_LDR) &&
+         DEI_FIELD_SATISFIED(required, actual, textureCompressionBC) &&
+         DEI_FIELD_SATISFIED(required, actual, occlusionQueryPrecise) &&
+         DEI_FIELD_SATISFIED(required, actual, pipelineStatisticsQuery) &&
+         DEI_FIELD_SATISFIED(required, actual, vertexPipelineStoresAndAtomics) &&
+         DEI_FIELD_SATISFIED(required, actual, fragmentStoresAndAtomics) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderTessellationAndGeometryPointSize) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderImageGatherExtended) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageExtendedFormats) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageMultisample) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageReadWithoutFormat) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageWriteWithoutFormat) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderUniformBufferArrayDynamicIndexing) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderSampledImageArrayDynamicIndexing) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageBufferArrayDynamicIndexing) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageArrayDynamicIndexing) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderClipDistance) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderCullDistance) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderFloat64) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderInt64) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderInt16) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderResourceResidency) &&
+         DEI_FIELD_SATISFIED(required, actual, shaderResourceMinLod) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseBinding) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidencyBuffer) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidencyImage2D) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidencyImage3D) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidency2Samples) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidency4Samples) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidency8Samples) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidency16Samples) &&
+         DEI_FIELD_SATISFIED(required, actual, sparseResidencyAliased) &&
+         DEI_FIELD_SATISFIED(required, actual, variableMultisampleRate) &&
+         DEI_FIELD_SATISFIED(required, actual, inheritedQueries);
+}
+
 } // namespace ::
 
 namespace dei::render {
@@ -54,102 +112,67 @@ auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtension
    return instance;
 }
 
-auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<u32> {
-   auto deviceCount = u32{1};
-   VkResult res = vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-   auto physicalDevices = std::vector<VkPhysicalDevice>(deviceCount);
-   res = vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
-   if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
+auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<std::vector<PhysicalDevice>> {
+   auto numAllDevices = u32{1};
+   VkResult res = vkEnumeratePhysicalDevices(instance, &numAllDevices, nullptr);
+   auto physicalDevices = std::vector<VkPhysicalDevice>(numAllDevices);
+   res = vkEnumeratePhysicalDevices(instance, &numAllDevices, physicalDevices.data());
+   if ((res != VK_SUCCESS && res != VK_INCOMPLETE) || numAllDevices == 0) {
       // TODO: assert?
       return std::nullopt;
    }
 
-   if (deviceCount == 0) {
-      // TODO: assert?
+   auto physicalDeviceInfos = std::vector<PhysicalDevice>(numAllDevices);
+   for (int i = 0; i < physicalDevices.size(); ++i) {
+      // NOTE: is apiVersion >= appInfo.apiVersion? The spec doesn't explain.
+      auto deviceProperties = VkPhysicalDeviceProperties{};
+      vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
+      auto deviceFeatures = VkPhysicalDeviceFeatures{};
+      vkGetPhysicalDeviceFeatures(physicalDevices[i], &deviceFeatures);
+      physicalDeviceInfos[i] = PhysicalDevice {
+         physicalDevices[i],
+         deviceFeatures,
+         deviceProperties,
+      };
+   }
+   return physicalDeviceInfos;
+}
+
+auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>> {
+   auto maybeAllDevices = GetVulkanPhysicalDevices(instance);
+   if (maybeAllDevices == std::nullopt) {
       return std::nullopt;
    }
-
-   // NOTE: is apiVersion >= appInfo.apiVersion? The spec doesn't explain.
-   for (const auto& physicalDevice : physicalDevices) {
-      VkPhysicalDeviceProperties deviceProperties;
-      vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-
+   auto& allDevices = *maybeAllDevices;
+   auto satisfiedDevices = std::vector<PhysicalDevice>(allDevices.size());
+   auto numSatisfiedDevices = u32{0};
+   for (const auto& deviceInfo : allDevices) {
       auto deviceTypeStr = "UNKNOWN";
-      if (deviceProperties.deviceType < sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*)) {
-         deviceTypeStr = VkPhysicalDeviceTypeToStr[deviceProperties.deviceType];
+      if (deviceInfo.properties.deviceType < sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*)) {
+         deviceTypeStr = VkPhysicalDeviceTypeToStr[deviceInfo.properties.deviceType];
       }
       printf("Physical device: %s\n", deviceTypeStr);
-      printf(" - Vendor       : %s\n", GetVkPhysicalDeviceVendorStr(deviceProperties.vendorID));
-      printf(" - Name         : %s\n", deviceProperties.deviceName);
-      printf(" - Version      : %zu\n", deviceProperties.driverVersion);
+      printf(" - Vendor       : %s\n", GetVkPhysicalDeviceVendorStr(deviceInfo.properties.vendorID));
+      printf(" - Name         : %s\n", deviceInfo.properties.deviceName);
+      printf(" - Version      : %zu\n", deviceInfo.properties.driverVersion);
       printf(" - API Version  : %zu.%zu.%zu\n",
-        VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
-        VK_API_VERSION_MINOR(deviceProperties.apiVersion),
-        VK_API_VERSION_PATCH(deviceProperties.apiVersion));
-      // printf(" - Max Framebuffer : %zu x %zu\n",
-      //    deviceProperties.limits.maxFramebufferWidth,
-      //    deviceProperties.limits.maxFramebufferHeight);
+        VK_API_VERSION_MAJOR(deviceInfo.properties.apiVersion),
+        VK_API_VERSION_MINOR(deviceInfo.properties.apiVersion),
+        VK_API_VERSION_PATCH(deviceInfo.properties.apiVersion));
+      printf(" - Max Framebuffer : %zu x %zu\n",
+         deviceInfo.properties.limits.maxFramebufferWidth,
+         deviceInfo.properties.limits.maxFramebufferHeight);
 
-      VkPhysicalDeviceFeatures actualFeatures;
-      vkGetPhysicalDeviceFeatures(physicalDevice, &actualFeatures);
-      b8 allFeaturesSatisfied =
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, robustBufferAccess) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, fullDrawIndexUint32) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, imageCubeArray) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, independentBlend) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, geometryShader) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, tessellationShader) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sampleRateShading) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, dualSrcBlend) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, logicOp) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, multiDrawIndirect) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, drawIndirectFirstInstance) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, depthClamp) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, depthBiasClamp) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, fillModeNonSolid) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, depthBounds) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, wideLines) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, largePoints) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, alphaToOne) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, multiViewport) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, samplerAnisotropy) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, textureCompressionETC2) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, textureCompressionASTC_LDR) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, textureCompressionBC) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, occlusionQueryPrecise) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, pipelineStatisticsQuery) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, vertexPipelineStoresAndAtomics) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, fragmentStoresAndAtomics) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderTessellationAndGeometryPointSize) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderImageGatherExtended) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageImageExtendedFormats) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageImageMultisample) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageImageReadWithoutFormat) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageImageWriteWithoutFormat) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderUniformBufferArrayDynamicIndexing) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderSampledImageArrayDynamicIndexing) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageBufferArrayDynamicIndexing) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderStorageImageArrayDynamicIndexing) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderClipDistance) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderCullDistance) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderFloat64) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderInt64) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderInt16) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderResourceResidency) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, shaderResourceMinLod) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseBinding) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidencyBuffer) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidencyImage2D) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidencyImage3D) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidency2Samples) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidency4Samples) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidency8Samples) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidency16Samples) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, sparseResidencyAliased) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, variableMultisampleRate) &&
-      DEI_FIELD_SATISFIED(requiredFeatures, actualFeatures, inheritedQueries);
+      b8 allFeaturesSatisfied = VerifyVkPhysicalFeatures(requiredFeatures, deviceInfo.features);
       printf(" - Features satisfied  : %d\n", allFeaturesSatisfied);
+
+      if (allFeaturesSatisfied) {
+         satisfiedDevices[numSatisfiedDevices] = deviceInfo;
+         ++numSatisfiedDevices;
+      }
    }
+   satisfiedDevices.resize(numSatisfiedDevices);
+   return satisfiedDevices;
 }
 
 } // namespace dei
