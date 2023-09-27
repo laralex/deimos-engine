@@ -31,7 +31,7 @@ public:
 	PhysicalDevice& operator=(PhysicalDevice&&) = default;
 	auto GetVendorName() const -> const char*;
 	auto GetDeviceTypeName() const -> const char*;
-	auto GetSupportedMultisamples() const -> u32;
+	auto GetMaxNumFramebufferSamples() const -> VkSampleCountFlags;
 	auto GetDevice() const& -> const VkPhysicalDevice& {
 		return _device;
 	}

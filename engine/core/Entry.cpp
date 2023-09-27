@@ -103,12 +103,13 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     requiredDeviceFeatures.variableMultisampleRate                    = false;
     requiredDeviceFeatures.inheritedQueries                           = false;
     auto maybeDevices = dei::render::PhysicalDevice::QueryAll(
-        destinationState.VulkanInstance,
-        requiredDeviceFeatures);
+        destinationState.VulkanInstance);
     assert(maybeDevices);
     auto& physicalDevices = *maybeDevices;
     for (const auto& device : physicalDevices) {
         dei::render::PrintPhysicalDevice(device);
+        printf(" - Supports features : %d\n",
+            device.HasFeatures(requiredDeviceFeatures));
     }
 
     // TODO: add multi device rendering

@@ -173,9 +173,15 @@ auto PhysicalDevice::GetDeviceTypeName() const -> const char* {
    return VkPhysicalDeviceTypeToStr[_properties.deviceType];
 }
 
-auto PhysicalDevice::GetSupportedMultisamples() const -> u32 {
-   // TODO: implement
-   return 1;
+auto PhysicalDevice::GetMaxNumFramebufferSamples() const -> VkSampleCountFlags {
+   VkSampleCountFlags counts = _properties.limits.framebufferColorSampleCounts & _properties.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+    return VK_SAMPLE_COUNT_1_BIT;
 }
 
 auto PhysicalDevice::HasFeatures(const VkPhysicalDeviceFeatures& requiredFeatures) const -> b8 {
@@ -195,6 +201,17 @@ auto PrintPhysicalDevice(const PhysicalDevice& device) -> void {
    printf(" - Max Framebuffer : %d x %d\n",
       properties.limits.maxFramebufferWidth,
       properties.limits.maxFramebufferHeight);
+   // TODO: can simply convert to int
+   u32 maxFramebufferSamples = 1;
+   switch (device.GetMaxNumFramebufferSamples()) {
+      case VK_SAMPLE_COUNT_2_BIT: maxFramebufferSamples = 2; break;
+      case VK_SAMPLE_COUNT_4_BIT: maxFramebufferSamples = 4; break;
+      case VK_SAMPLE_COUNT_8_BIT: maxFramebufferSamples = 8; break;
+      case VK_SAMPLE_COUNT_16_BIT: maxFramebufferSamples = 16; break;
+      case VK_SAMPLE_COUNT_32_BIT: maxFramebufferSamples = 32; break;
+      case VK_SAMPLE_COUNT_64_BIT: maxFramebufferSamples = 64; break;
+   }
+   printf(" - Max Framebuffer Samples : %d\n", maxFramebufferSamples);
 }
 
 } // namespace dei
