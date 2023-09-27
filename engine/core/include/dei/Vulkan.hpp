@@ -23,15 +23,37 @@ struct VulkanContext {
 
 auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtensionsCount) -> VkInstance;
 
-struct PhysicalDevice {
-	VkPhysicalDevice Device;
-	VkPhysicalDeviceFeatures Features;
-	VkPhysicalDeviceProperties Properties;
-	const char* VendorAsString;
-	const char* DeviceTypeAsString;
+class PhysicalDevice {
+public:
+	static auto QueryAll(VkInstance) -> std::optional<std::vector<PhysicalDevice>>;
+	static auto QueryAll(VkInstance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>>;
+	PhysicalDevice(PhysicalDevice&&) = default;
+	PhysicalDevice& operator=(PhysicalDevice&&) = default;
+	auto GetVendorName() const -> const char*;
+	auto GetDeviceTypeName() const -> const char*;
+	auto GetSupportedMultisamples() const -> u32;
+	auto GetDevice() const& -> const VkPhysicalDevice& {
+		return _device;
+	}
+	auto GetDevice() && -> VkPhysicalDevice&& {
+		return std::move(_device);
+	}
+	auto GetFeatures() const -> const VkPhysicalDeviceFeatures& {
+		return _features;
+	}
+	auto GetProperties() const -> const VkPhysicalDeviceProperties& { return _properties;
+	}
+	auto GetLimits() const -> const VkPhysicalDeviceLimits& {
+		return _properties.limits;
+	}
+	auto HasFeatures(const VkPhysicalDeviceFeatures&) const -> b8;
+private:
+	PhysicalDevice() = default;
+	VkPhysicalDevice _device;
+	VkPhysicalDeviceFeatures _features;
+	VkPhysicalDeviceProperties _properties;
 };
 
-auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<std::vector<PhysicalDevice>>;
-auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>>;
+auto PrintPhysicalDevice(const PhysicalDevice&) -> void;
 
 } // namespace dei

@@ -112,68 +112,89 @@ auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtension
    return instance;
 }
 
-auto GetVulkanPhysicalDevices(VkInstance instance) -> std::optional<std::vector<PhysicalDevice>> {
+auto PhysicalDevice::QueryAll(VkInstance instance) -> std::optional<std::vector<PhysicalDevice>> {
    auto numAllDevices = u32{1};
    VkResult res = vkEnumeratePhysicalDevices(instance, &numAllDevices, nullptr);
-   auto physicalDevices = std::vector<VkPhysicalDevice>(numAllDevices);
-   res = vkEnumeratePhysicalDevices(instance, &numAllDevices, physicalDevices.data());
+   auto rawPhysicalDevices = std::vector<VkPhysicalDevice>(numAllDevices);
+   res = vkEnumeratePhysicalDevices(instance, &numAllDevices, rawPhysicalDevices.data());
    if ((res != VK_SUCCESS && res != VK_INCOMPLETE) || numAllDevices == 0) {
       // TODO: assert?
       return std::nullopt;
    }
 
-   auto physicalDeviceInfos = std::vector<PhysicalDevice>(numAllDevices);
-   for (int i = 0; i < physicalDevices.size(); ++i) {
+   // can't preallocate, because no deafult contrustor
+   auto physicalDevices = std::vector<PhysicalDevice>{};
+   for (int i = 0; i < rawPhysicalDevices.size(); ++i) {
       // NOTE: is apiVersion >= appInfo.apiVersion? The spec doesn't explain.
+      const auto& rawDevice = rawPhysicalDevices[i];
       auto deviceProperties = VkPhysicalDeviceProperties{};
-      vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
       auto deviceFeatures = VkPhysicalDeviceFeatures{};
-      vkGetPhysicalDeviceFeatures(physicalDevices[i], &deviceFeatures);
-      physicalDeviceInfos[i] = PhysicalDevice {};
-      physicalDeviceInfos[i].Device = physicalDevices[i];
-      physicalDeviceInfos[i].Features = deviceFeatures;
-      physicalDeviceInfos[i].Properties = deviceProperties;
-      physicalDeviceInfos[i].VendorAsString = GetVkPhysicalDeviceVendorStr(deviceProperties.vendorID);
-
-      physicalDeviceInfos[i].DeviceTypeAsString = "UNKNOWN";
-      if (deviceProperties.deviceType < sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*)) {
-         physicalDeviceInfos[i].DeviceTypeAsString = VkPhysicalDeviceTypeToStr[deviceProperties.deviceType];
-      }
+      vkGetPhysicalDeviceProperties(rawDevice, &deviceProperties);
+      vkGetPhysicalDeviceFeatures(rawDevice, &deviceFeatures);
+      auto device = PhysicalDevice {};
+      device._device = rawDevice;
+      device._features = deviceFeatures;
+      device._properties = deviceProperties;
+      physicalDevices.emplace_back(std::move(device));
    }
-   return physicalDeviceInfos;
+   return physicalDevices;
 }
 
-auto GetVulkanPhysicalDevices(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>> {
-   auto maybeAllDevices = GetVulkanPhysicalDevices(instance);
+auto PhysicalDevice::QueryAll(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>> {
+   auto maybeAllDevices = PhysicalDevice::QueryAll(instance);
    if (maybeAllDevices == std::nullopt) {
       return std::nullopt;
    }
-   auto& allDevices = *maybeAllDevices;
-   auto satisfiedDevices = std::vector<PhysicalDevice>(allDevices.size());
-   auto numSatisfiedDevices = u32{0};
-   for (const auto& deviceInfo : allDevices) {
-      printf("Physical device: %s\n", deviceInfo.DeviceTypeAsString);
-      printf(" - Vendor       : %s\n", deviceInfo.VendorAsString);
-      printf(" - Name         : %s\n", deviceInfo.Properties.deviceName);
-      printf(" - Version      : %zu\n", deviceInfo.Properties.driverVersion);
-      printf(" - API Version  : %zu.%zu.%zu\n",
-        VK_API_VERSION_MAJOR(deviceInfo.Properties.apiVersion),
-        VK_API_VERSION_MINOR(deviceInfo.Properties.apiVersion),
-        VK_API_VERSION_PATCH(deviceInfo.Properties.apiVersion));
-      printf(" - Max Framebuffer : %zu x %zu\n",
-         deviceInfo.Properties.limits.maxFramebufferWidth,
-         deviceInfo.Properties.limits.maxFramebufferHeight);
-
-      b8 allFeaturesSatisfied = VerifyVkPhysicalFeatures(requiredFeatures, deviceInfo.Features);
-      printf(" - Features satisfied  : %d\n", allFeaturesSatisfied);
-
-      if (allFeaturesSatisfied) {
-         satisfiedDevices[numSatisfiedDevices] = deviceInfo;
-         ++numSatisfiedDevices;
+   auto satisfiedDevices = std::vector<PhysicalDevice>{};
+   //satisfiedDevices.reserve(maybeAllDevices->size());
+   // std::copy_if(
+   //    maybeAllDevices->begin(), maybeAllDevices->end(),
+   //    std::back_inserter(satisfiedDevices), [&](auto& device){
+   //       return device.HasFeatures(requiredFeatures);
+   // });
+   for (auto&& device : *maybeAllDevices) {
+      if (device.HasFeatures(requiredFeatures) == false) {
+         continue;
       }
+      satisfiedDevices.emplace_back(std::move(device));
    }
-   satisfiedDevices.resize(numSatisfiedDevices);
    return satisfiedDevices;
+}
+
+auto PhysicalDevice::GetVendorName() const -> const char* {
+   return GetVkPhysicalDeviceVendorStr(_properties.vendorID);
+}
+
+auto PhysicalDevice::GetDeviceTypeName() const -> const char* {
+   constexpr u32 numTypes = sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*);
+   if (_properties.deviceType >= numTypes) {
+      return "UNKNOWN";
+   }
+   return VkPhysicalDeviceTypeToStr[_properties.deviceType];
+}
+
+auto PhysicalDevice::GetSupportedMultisamples() const -> u32 {
+   // TODO: implement
+   return 1;
+}
+
+auto PhysicalDevice::HasFeatures(const VkPhysicalDeviceFeatures& requiredFeatures) const -> b8 {
+   return VerifyVkPhysicalFeatures(requiredFeatures, _features);
+}
+
+auto PrintPhysicalDevice(const PhysicalDevice& device) -> void {
+   const auto& properties = device.GetProperties();
+   printf("Physical device: %s\n", device.GetDeviceTypeName());
+   printf(" - Vendor       : %s\n", device.GetVendorName());
+   printf(" - Name         : %s\n", properties.deviceName);
+   printf(" - Version      : %d\n", properties.driverVersion);
+   printf(" - API Version  : %d.%d.%d\n",
+      VK_API_VERSION_MAJOR(properties.apiVersion),
+      VK_API_VERSION_MINOR(properties.apiVersion),
+      VK_API_VERSION_PATCH(properties.apiVersion));
+   printf(" - Max Framebuffer : %d x %d\n",
+      properties.limits.maxFramebufferWidth,
+      properties.limits.maxFramebufferHeight);
 }
 
 } // namespace dei

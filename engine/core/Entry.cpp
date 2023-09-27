@@ -49,18 +49,18 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     VkPhysicalDeviceFeatures requiredDeviceFeatures;
     requiredDeviceFeatures.robustBufferAccess                         = false;
     requiredDeviceFeatures.fullDrawIndexUint32                        = false;
-    requiredDeviceFeatures.imageCubeArray                             = false;
+    requiredDeviceFeatures.imageCubeArray                             = true;
     requiredDeviceFeatures.independentBlend                           = false;
     requiredDeviceFeatures.geometryShader                             = false;
     requiredDeviceFeatures.tessellationShader                         = false;
-    requiredDeviceFeatures.sampleRateShading                          = false;
-    requiredDeviceFeatures.dualSrcBlend                               = false;
-    requiredDeviceFeatures.logicOp                                    = false;
+    requiredDeviceFeatures.sampleRateShading                          = false; // TODO: maybe
+    requiredDeviceFeatures.dualSrcBlend                               = false; // TODO: maybe
+    requiredDeviceFeatures.logicOp                                    = true;
     requiredDeviceFeatures.multiDrawIndirect                          = false;
     requiredDeviceFeatures.drawIndirectFirstInstance                  = false;
     requiredDeviceFeatures.depthClamp                                 = false;
     requiredDeviceFeatures.depthBiasClamp                             = false;
-    requiredDeviceFeatures.fillModeNonSolid                           = false;
+    requiredDeviceFeatures.fillModeNonSolid                           = true;
     requiredDeviceFeatures.depthBounds                                = false;
     requiredDeviceFeatures.wideLines                                  = false;
     requiredDeviceFeatures.largePoints                                = false;
@@ -102,17 +102,21 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     requiredDeviceFeatures.sparseResidencyAliased                     = false;
     requiredDeviceFeatures.variableMultisampleRate                    = false;
     requiredDeviceFeatures.inheritedQueries                           = false;
-    auto maybeDevices = dei::render::GetVulkanPhysicalDevices(
+    auto maybeDevices = dei::render::PhysicalDevice::QueryAll(
         destinationState.VulkanInstance,
         requiredDeviceFeatures);
     assert(maybeDevices);
     auto& physicalDevices = *maybeDevices;
+    for (const auto& device : physicalDevices) {
+        dei::render::PrintPhysicalDevice(device);
+    }
 
     // TODO: add multi device rendering
-    destinationState.PhysicalDevice = physicalDevices.begin()->Device;
+    auto selectedPhysicalDevice = std::move(*physicalDevices.begin());
     std::cout << "Selected physical device: "
-        << physicalDevices.begin()->Properties.deviceName << " ("
-        << physicalDevices.begin()->DeviceTypeAsString << ") !!!\n";
+        << selectedPhysicalDevice.GetProperties().deviceName << " ("
+        << selectedPhysicalDevice.GetDeviceTypeName() << ") !!!\n";
+    destinationState.PhysicalDevice = std::move(selectedPhysicalDevice).GetDevice();
     return true;
 }
 
