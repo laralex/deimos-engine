@@ -13,6 +13,14 @@ constexpr const char* VkPhysicalDeviceTypeToStr[5] = {
    "DEVICE_TYPE_CPU",
 };
 
+constexpr const char* GetVkPhysicalDeviceTypeStr(VkPhysicalDeviceType type) {
+   constexpr u32 numTypes = sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*);
+   if (type >= numTypes) {
+      return "UNKNOWN";
+   }
+   return VkPhysicalDeviceTypeToStr[type];
+}
+
 constexpr const char* GetVkPhysicalDeviceVendorStr(u32 vendorId) {
    switch (vendorId)
    {
@@ -259,6 +267,28 @@ inline auto GetMaxFramebufferSamples(const VkPhysicalDeviceLimits& limits, bool 
    return ParseSampleCountFlags(counts);
 }
 
+auto QueryAndFilterPhysicalDevice(
+   VkInstance instance,
+   const VkPhysicalDeviceFeatures* requiredFeatures,
+   const VkPhysicalDeviceLimits* requiredLimits
+) -> std::optional<std::vector<dei::render::PhysicalDevice>> {
+   auto maybeAllDevices = dei::render::PhysicalDevice::QueryAll(instance);
+   if (maybeAllDevices == std::nullopt) {
+      return std::nullopt;
+   }
+   auto satisfiedDevices = std::vector<dei::render::PhysicalDevice>{};
+   for (auto&& device : *maybeAllDevices) {
+      if (requiredFeatures != nullptr && device.HasFeatures(*requiredFeatures) == false) {
+         continue;
+      }
+      if (requiredLimits != nullptr && device.HasLimits(*requiredLimits) == false) {
+         continue;
+      }
+      satisfiedDevices.emplace_back(std::move(device));
+   }
+   return satisfiedDevices;
+}
+
 } // namespace ::
 
 namespace dei::render {
@@ -299,35 +329,41 @@ auto PhysicalDevice::QueryAll(VkInstance instance) -> std::optional<std::vector<
 
    // can't preallocate, because no deafult contrustor
    auto physicalDevices = std::vector<PhysicalDevice>{};
-   for (int i = 0; i < rawPhysicalDevices.size(); ++i) {
+   for (auto&& rawDevice : rawPhysicalDevices) {
       // NOTE: is apiVersion >= appInfo.apiVersion? The spec doesn't explain.
-      const auto& rawDevice = rawPhysicalDevices[i];
       auto deviceProperties = VkPhysicalDeviceProperties{};
       auto deviceFeatures = VkPhysicalDeviceFeatures{};
       vkGetPhysicalDeviceProperties(rawDevice, &deviceProperties);
       vkGetPhysicalDeviceFeatures(rawDevice, &deviceFeatures);
-      auto device = PhysicalDevice {};
-      device._device = rawDevice;
-      device._features = deviceFeatures;
-      device._properties = deviceProperties;
+      auto device = PhysicalDevice(
+         std::move(rawDevice),
+         std::move(deviceFeatures),
+         std::move(deviceProperties));
       physicalDevices.emplace_back(std::move(device));
    }
    return physicalDevices;
 }
 
-auto PhysicalDevice::QueryAll(VkInstance instance, const VkPhysicalDeviceFeatures& requiredFeatures) -> std::optional<std::vector<PhysicalDevice>> {
-   auto maybeAllDevices = PhysicalDevice::QueryAll(instance);
-   if (maybeAllDevices == std::nullopt) {
-      return std::nullopt;
-   }
-   auto satisfiedDevices = std::vector<PhysicalDevice>{};
-   for (auto&& device : *maybeAllDevices) {
-      if (device.HasFeatures(requiredFeatures) == false) {
-         continue;
-      }
-      satisfiedDevices.emplace_back(std::move(device));
-   }
-   return satisfiedDevices;
+auto PhysicalDevice::QueryAll(
+   VkInstance instance,
+   const VkPhysicalDeviceFeatures& requiredFeatures
+) -> std::optional<std::vector<PhysicalDevice>> {
+   return ::QueryAndFilterPhysicalDevice(instance, &requiredFeatures, nullptr);
+}
+
+auto PhysicalDevice::QueryAll(
+   VkInstance instance,
+   const VkPhysicalDeviceLimits& requiredLimits
+) -> std::optional<std::vector<PhysicalDevice>> {
+   return ::QueryAndFilterPhysicalDevice(instance, nullptr, &requiredLimits);
+}
+
+auto PhysicalDevice::QueryAll(
+   VkInstance instance,
+   const VkPhysicalDeviceFeatures& requiredFeatures,
+   const VkPhysicalDeviceLimits& requiredLimits
+) -> std::optional<std::vector<PhysicalDevice>> {
+   return ::QueryAndFilterPhysicalDevice(instance, &requiredFeatures, &requiredLimits);
 }
 
 auto PhysicalDevice::GetVendorName() const -> const char* {
@@ -335,11 +371,7 @@ auto PhysicalDevice::GetVendorName() const -> const char* {
 }
 
 auto PhysicalDevice::GetDeviceTypeName() const -> const char* {
-   constexpr u32 numTypes = sizeof(VkPhysicalDeviceTypeToStr)/sizeof(void*);
-   if (_properties.deviceType >= numTypes) {
-      return "UNKNOWN";
-   }
-   return VkPhysicalDeviceTypeToStr[_properties.deviceType];
+   return ::GetVkPhysicalDeviceTypeStr(_properties.deviceType);
 }
 
 auto PhysicalDevice::GetMaxFramebufferSamples(bool ofColor, bool ofDepth, bool ofStencil) const -> VkSampleCountFlagBits {
