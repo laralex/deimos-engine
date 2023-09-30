@@ -26,6 +26,154 @@ constexpr const char* GetVkPhysicalDeviceVendorStr(u32 vendorId) {
    return "VENDOR_UNKNOWN";
 }
 
+b8 VerifyVkPhysicalLimits(const VkPhysicalDeviceLimits& required, const VkPhysicalDeviceLimits& actual) {
+   b8 result = true;
+   result &= required.maxImageDimension1D <= actual.maxImageDimension1D;
+   result &= required.maxImageDimension2D <= actual.maxImageDimension2D;
+   result &= required.maxImageDimension3D <= actual.maxImageDimension3D;
+   result &= required.maxImageDimensionCube <= actual.maxImageDimensionCube;
+   result &= required.maxImageArrayLayers <= actual.maxImageArrayLayers;
+   result &= required.maxTexelBufferElements <= actual.maxTexelBufferElements;
+   result &= required.maxUniformBufferRange <= actual.maxUniformBufferRange;
+   result &= required.maxStorageBufferRange <= actual.maxStorageBufferRange;
+   result &= required.maxPushConstantsSize <= actual.maxPushConstantsSize;
+   result &= required.maxMemoryAllocationCount <= actual.maxMemoryAllocationCount;
+   result &= required.maxSamplerAllocationCount <= actual.maxSamplerAllocationCount;
+   result &= (required.bufferImageGranularity >= actual.bufferImageGranularity // ge
+      || required.bufferImageGranularity == 0);
+   result &= required.sparseAddressSpaceSize <= actual.sparseAddressSpaceSize;
+   result &= required.maxBoundDescriptorSets <= actual.maxBoundDescriptorSets;
+   result &= required.maxPerStageDescriptorSamplers <= actual.maxPerStageDescriptorSamplers;
+   result &= required.maxPerStageDescriptorUniformBuffers <= actual.maxPerStageDescriptorUniformBuffers;
+   result &= required.maxPerStageDescriptorStorageBuffers <= actual.maxPerStageDescriptorStorageBuffers;
+   result &= required.maxPerStageDescriptorSampledImages <= actual.maxPerStageDescriptorSampledImages;
+   result &= required.maxPerStageDescriptorStorageImages <= actual.maxPerStageDescriptorStorageImages;
+   result &= required.maxPerStageDescriptorInputAttachments <= actual.maxPerStageDescriptorInputAttachments;
+   result &= required.maxPerStageResources <= actual.maxPerStageResources;
+   result &= required.maxDescriptorSetSamplers <= actual.maxDescriptorSetSamplers;
+   result &= required.maxDescriptorSetUniformBuffers <= actual.maxDescriptorSetUniformBuffers;
+   result &= required.maxDescriptorSetUniformBuffersDynamic <= actual.maxDescriptorSetUniformBuffersDynamic;
+   result &= required.maxDescriptorSetStorageBuffers <= actual.maxDescriptorSetStorageBuffers;
+   result &= required.maxDescriptorSetStorageBuffersDynamic <= actual.maxDescriptorSetStorageBuffersDynamic;
+   result &= required.maxDescriptorSetSampledImages <= actual.maxDescriptorSetSampledImages;
+   result &= required.maxDescriptorSetStorageImages <= actual.maxDescriptorSetStorageImages;
+   result &= required.maxDescriptorSetInputAttachments <= actual.maxDescriptorSetInputAttachments;
+   result &= required.maxVertexInputAttributes <= actual.maxVertexInputAttributes;
+   result &= required.maxVertexInputBindings <= actual.maxVertexInputBindings;
+   result &= required.maxVertexInputAttributeOffset <= actual.maxVertexInputAttributeOffset;
+   result &= required.maxVertexInputBindingStride <= actual.maxVertexInputBindingStride;
+   result &= required.maxVertexOutputComponents <= actual.maxVertexOutputComponents;
+   result &= required.maxTessellationGenerationLevel <= actual.maxTessellationGenerationLevel;
+   result &= required.maxTessellationPatchSize <= actual.maxTessellationPatchSize;
+   result &= required.maxTessellationControlPerVertexInputComponents <= actual.maxTessellationControlPerVertexInputComponents;
+   result &= required.maxTessellationControlPerVertexOutputComponents <= actual.maxTessellationControlPerVertexOutputComponents;
+   result &= required.maxTessellationControlPerPatchOutputComponents <= actual.maxTessellationControlPerPatchOutputComponents;
+   result &= required.maxTessellationControlTotalOutputComponents <= actual.maxTessellationControlTotalOutputComponents;
+   result &= required.maxTessellationEvaluationInputComponents <= actual.maxTessellationEvaluationInputComponents;
+   result &= required.maxTessellationEvaluationOutputComponents <= actual.maxTessellationEvaluationOutputComponents;
+   result &= required.maxGeometryShaderInvocations <= actual.maxGeometryShaderInvocations;
+   result &= required.maxGeometryInputComponents <= actual.maxGeometryInputComponents;
+   result &= required.maxGeometryOutputComponents <= actual.maxGeometryOutputComponents;
+   result &= required.maxGeometryOutputVertices <= actual.maxGeometryOutputVertices;
+   result &= required.maxGeometryTotalOutputComponents <= actual.maxGeometryTotalOutputComponents;
+   result &= required.maxFragmentInputComponents <= actual.maxFragmentInputComponents;
+   result &= required.maxFragmentOutputAttachments <= actual.maxFragmentOutputAttachments;
+   result &= required.maxFragmentDualSrcAttachments <= actual.maxFragmentDualSrcAttachments;
+   result &= required.maxFragmentCombinedOutputResources <= actual.maxFragmentCombinedOutputResources;
+   result &= required.maxComputeSharedMemorySize <= actual.maxComputeSharedMemorySize;
+   result &= required.maxComputeWorkGroupCount[0] <= actual.maxComputeWorkGroupCount[0];
+   result &= required.maxComputeWorkGroupCount[1] <= actual.maxComputeWorkGroupCount[1];
+   result &= required.maxComputeWorkGroupCount[2] <= actual.maxComputeWorkGroupCount[2];
+   result &= required.maxComputeWorkGroupInvocations <= actual.maxComputeWorkGroupInvocations;
+   result &= required.maxComputeWorkGroupSize[0] <= actual.maxComputeWorkGroupSize[0];
+   result &= required.maxComputeWorkGroupSize[1] <= actual.maxComputeWorkGroupSize[1];
+   result &= required.maxComputeWorkGroupSize[2] <= actual.maxComputeWorkGroupSize[2];
+   result &= required.subPixelPrecisionBits <= actual.subPixelPrecisionBits;
+   result &= required.subTexelPrecisionBits <= actual.subTexelPrecisionBits;
+   result &= required.mipmapPrecisionBits <= actual.mipmapPrecisionBits;
+   result &= required.maxDrawIndexedIndexValue <= actual.maxDrawIndexedIndexValue;
+   result &= required.maxDrawIndirectCount <= actual.maxDrawIndirectCount;
+   result &= required.maxSamplerLodBias <= actual.maxSamplerLodBias;
+   result &= required.maxSamplerAnisotropy <= actual.maxSamplerAnisotropy;
+   result &= required.maxViewports <= actual.maxViewports;
+   result &= required.maxViewportDimensions[0] <= actual.maxViewportDimensions[0];
+   result &= required.maxViewportDimensions[1] <= actual.maxViewportDimensions[1];
+   result &= (required.viewportBoundsRange[0] >= actual.viewportBoundsRange[0] // ge
+      || std::abs(required.viewportBoundsRange[0]) < 0.000001f);
+   result &= required.viewportBoundsRange[1] <= actual.viewportBoundsRange[1];
+   result &= required.viewportSubPixelBits <= actual.viewportSubPixelBits;
+   result &= (required.minMemoryMapAlignment >= actual.minMemoryMapAlignment // ge
+      || required.minMemoryMapAlignment == 0);
+   result &= (required.minTexelBufferOffsetAlignment >= actual.minTexelBufferOffsetAlignment // ge
+      || required.minTexelBufferOffsetAlignment == 0);
+   result &= (required.minUniformBufferOffsetAlignment >= actual.minUniformBufferOffsetAlignment // ge
+      || required.minUniformBufferOffsetAlignment == 0);
+   result &= (required.minStorageBufferOffsetAlignment >= actual.minStorageBufferOffsetAlignment // ge
+      || required.minStorageBufferOffsetAlignment == 0);
+   result &= (required.minTexelOffset >= actual.minTexelOffset // ge
+      || required.minTexelOffset == 0);
+   result &= required.maxTexelOffset <= actual.maxTexelOffset;
+   result &= (required.minTexelGatherOffset >= actual.minTexelGatherOffset // ge
+      || required.minTexelGatherOffset == 0);
+   result &= required.maxTexelGatherOffset <= actual.maxTexelGatherOffset;
+   result &= (required.minInterpolationOffset >= actual.minInterpolationOffset // ge
+      || std::abs(required.minInterpolationOffset) < 0.000001f);
+   result &= required.maxInterpolationOffset <= actual.maxInterpolationOffset;
+   result &= (required.subPixelInterpolationOffsetBits >= actual.subPixelInterpolationOffsetBits // ge
+      || required.subPixelInterpolationOffsetBits == 0);
+   result &= required.maxFramebufferWidth <= actual.maxFramebufferWidth;
+   result &= required.maxFramebufferHeight <= actual.maxFramebufferHeight;
+   result &= required.maxFramebufferLayers <= actual.maxFramebufferLayers;
+   result &= (required.framebufferColorSampleCounts & actual.framebufferColorSampleCounts)
+      == required.framebufferColorSampleCounts;
+   result &= (required.framebufferDepthSampleCounts & actual.framebufferDepthSampleCounts)
+      == required.framebufferDepthSampleCounts;
+   result &= (required.framebufferStencilSampleCounts & actual.framebufferStencilSampleCounts)
+      == required.framebufferStencilSampleCounts;
+   result &= (required.framebufferNoAttachmentsSampleCounts & actual.framebufferNoAttachmentsSampleCounts)
+      == required.framebufferNoAttachmentsSampleCounts;
+   result &= required.maxColorAttachments <= actual.maxColorAttachments;
+   result &= (required.sampledImageColorSampleCounts & actual.sampledImageColorSampleCounts)
+      == required.sampledImageColorSampleCounts;
+   result &= (required.sampledImageIntegerSampleCounts & actual.sampledImageIntegerSampleCounts)
+      == required.sampledImageIntegerSampleCounts;
+   result &= (required.sampledImageDepthSampleCounts & actual.sampledImageDepthSampleCounts)
+      == required.sampledImageDepthSampleCounts;
+   result &= (required.sampledImageStencilSampleCounts & actual.sampledImageStencilSampleCounts)
+      == required.sampledImageStencilSampleCounts;
+   result &= (required.storageImageSampleCounts & actual.storageImageSampleCounts)
+      == required.storageImageSampleCounts;
+   result &= required.maxSampleMaskWords <= actual.maxSampleMaskWords;
+   result &= (required.timestampComputeAndGraphics == actual.timestampComputeAndGraphics
+      || required.timestampComputeAndGraphics == VK_FALSE);
+   // NOTE: timestampPeriod has informative meaning,
+   // it's advisable to NOT require any particular value of it
+   result &= required.timestampPeriod <= actual.timestampPeriod;
+   result &= required.maxClipDistances <= actual.maxClipDistances;
+   result &= required.maxCullDistances <= actual.maxCullDistances;
+   result &= required.maxCombinedClipAndCullDistances <= actual.maxCombinedClipAndCullDistances;
+   result &= required.discreteQueuePriorities <= actual.discreteQueuePriorities;
+   result &= (required.pointSizeRange[0] >= actual.pointSizeRange[0] // ge
+      || std::abs(required.pointSizeRange[0]) < 0.000001f);
+   result &= required.pointSizeRange[1] <= actual.pointSizeRange[1];
+   result &= (required.lineWidthRange[0] >= actual.lineWidthRange[0] // ge
+      || std::abs(required.lineWidthRange[0]) < 0.000001f);
+   result &= required.lineWidthRange[1] <= actual.lineWidthRange[1];
+   result &= (required.pointSizeGranularity >= actual.pointSizeGranularity // ge
+      || std::abs(required.pointSizeGranularity) < 0.000001f);
+   result &= (required.lineWidthGranularity >= actual.lineWidthGranularity // ge
+      || std::abs(required.lineWidthGranularity) < 0.000001f);
+   result &= (required.strictLines == actual.strictLines
+      || required.strictLines == VK_FALSE);
+   result &= (required.standardSampleLocations == actual.standardSampleLocations
+      || required.standardSampleLocations == VK_FALSE);
+   return result;
+      // FIXME: not sure how to compare against (min or max)
+      //  VkDeviceSize          optimalBufferCopyOffsetAlignment;
+      //  VkDeviceSize          optimalBufferCopyRowPitchAlignment;
+      //  VkDeviceSize          nonCoherentAtomSize;
+}
+
 b8 VerifyVkPhysicalFeatures(const VkPhysicalDeviceFeatures& required, const VkPhysicalDeviceFeatures& actual) {
    return DEI_FIELD_SATISFIED(required, actual, robustBufferAccess) &&
          DEI_FIELD_SATISFIED(required, actual, fullDrawIndexUint32) &&
@@ -82,6 +230,33 @@ b8 VerifyVkPhysicalFeatures(const VkPhysicalDeviceFeatures& required, const VkPh
          DEI_FIELD_SATISFIED(required, actual, sparseResidencyAliased) &&
          DEI_FIELD_SATISFIED(required, actual, variableMultisampleRate) &&
          DEI_FIELD_SATISFIED(required, actual, inheritedQueries);
+}
+
+auto ParseSampleCountFlags(VkSampleCountFlags flags) -> VkSampleCountFlagBits {
+   if (flags & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+   if (flags & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+   if (flags & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+   if (flags & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+   if (flags & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+   if (flags & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+   return VK_SAMPLE_COUNT_1_BIT;
+}
+
+inline auto GetMaxFramebufferSamples(const VkPhysicalDeviceLimits& limits, bool ofColor, bool ofDepth, bool ofStencil) -> VkSampleCountFlagBits {
+      VkSampleCountFlags counts = {};
+   if (ofColor) {
+      counts &= limits.framebufferColorSampleCounts;
+   }
+   if (ofDepth) {
+      counts &= limits.framebufferDepthSampleCounts;
+   }
+   if (ofStencil) {
+      counts &= limits.framebufferStencilSampleCounts;
+   }
+   if (ofStencil) {
+      counts &= limits.framebufferNoAttachmentsSampleCounts;
+   }
+   return ParseSampleCountFlags(counts);
 }
 
 } // namespace ::
@@ -146,12 +321,6 @@ auto PhysicalDevice::QueryAll(VkInstance instance, const VkPhysicalDeviceFeature
       return std::nullopt;
    }
    auto satisfiedDevices = std::vector<PhysicalDevice>{};
-   //satisfiedDevices.reserve(maybeAllDevices->size());
-   // std::copy_if(
-   //    maybeAllDevices->begin(), maybeAllDevices->end(),
-   //    std::back_inserter(satisfiedDevices), [&](auto& device){
-   //       return device.HasFeatures(requiredFeatures);
-   // });
    for (auto&& device : *maybeAllDevices) {
       if (device.HasFeatures(requiredFeatures) == false) {
          continue;
@@ -162,7 +331,7 @@ auto PhysicalDevice::QueryAll(VkInstance instance, const VkPhysicalDeviceFeature
 }
 
 auto PhysicalDevice::GetVendorName() const -> const char* {
-   return GetVkPhysicalDeviceVendorStr(_properties.vendorID);
+   return ::GetVkPhysicalDeviceVendorStr(_properties.vendorID);
 }
 
 auto PhysicalDevice::GetDeviceTypeName() const -> const char* {
@@ -173,19 +342,21 @@ auto PhysicalDevice::GetDeviceTypeName() const -> const char* {
    return VkPhysicalDeviceTypeToStr[_properties.deviceType];
 }
 
-auto PhysicalDevice::GetMaxNumFramebufferSamples() const -> VkSampleCountFlags {
-   VkSampleCountFlags counts = _properties.limits.framebufferColorSampleCounts & _properties.limits.framebufferDepthSampleCounts;
-    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-    return VK_SAMPLE_COUNT_1_BIT;
+auto PhysicalDevice::GetMaxFramebufferSamples(bool ofColor, bool ofDepth, bool ofStencil) const -> VkSampleCountFlagBits {
+   return ::GetMaxFramebufferSamples(_properties.limits, ofColor, ofDepth, ofStencil);
+}
+
+auto PhysicalDevice::GetMaxFramebufferSamplesNoAttachments() const -> VkSampleCountFlagBits {
+   VkSampleCountFlags counts = _properties.limits.framebufferNoAttachmentsSampleCounts;
+   return ::ParseSampleCountFlags(counts);
 }
 
 auto PhysicalDevice::HasFeatures(const VkPhysicalDeviceFeatures& requiredFeatures) const -> b8 {
-   return VerifyVkPhysicalFeatures(requiredFeatures, _features);
+   return ::VerifyVkPhysicalFeatures(requiredFeatures, _features);
+}
+
+auto PhysicalDevice::HasLimits(const VkPhysicalDeviceLimits& requiredLimits) const -> b8 {
+   return ::VerifyVkPhysicalLimits(requiredLimits, _properties.limits);
 }
 
 auto PrintPhysicalDevice(const PhysicalDevice& device) -> void {
@@ -201,9 +372,14 @@ auto PrintPhysicalDevice(const PhysicalDevice& device) -> void {
    printf(" - Max Framebuffer : %d x %d\n",
       properties.limits.maxFramebufferWidth,
       properties.limits.maxFramebufferHeight);
+   printf(" - Min Texel Offset : %d\n", properties.limits.minTexelOffset);
+   printf(" - Min Texel Gather Offset : %d\n", properties.limits.minTexelGatherOffset);
+   printf(" - Max Image2D Dimension : %d\n", properties.limits.maxImageDimension2D);
+   printf(" - Max Vertex Attributes: %d\n", properties.limits.maxVertexInputAttributes);
+
    // TODO: can simply convert to int
    u32 maxFramebufferSamples = 1;
-   switch (device.GetMaxNumFramebufferSamples()) {
+   switch (device.GetMaxFramebufferSamples()) {
       case VK_SAMPLE_COUNT_2_BIT: maxFramebufferSamples = 2; break;
       case VK_SAMPLE_COUNT_4_BIT: maxFramebufferSamples = 4; break;
       case VK_SAMPLE_COUNT_8_BIT: maxFramebufferSamples = 8; break;

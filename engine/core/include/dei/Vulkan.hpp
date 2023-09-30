@@ -31,7 +31,8 @@ public:
 	PhysicalDevice& operator=(PhysicalDevice&&) = default;
 	auto GetVendorName() const -> const char*;
 	auto GetDeviceTypeName() const -> const char*;
-	auto GetMaxNumFramebufferSamples() const -> VkSampleCountFlags;
+	auto GetMaxFramebufferSamples(bool ofColor=true, bool ofDepth=false, bool ofStencil=false) const -> VkSampleCountFlagBits;
+	auto GetMaxFramebufferSamplesNoAttachments() const -> VkSampleCountFlagBits;
 	auto GetDevice() const& -> const VkPhysicalDevice& {
 		return _device;
 	}
@@ -47,6 +48,7 @@ public:
 		return _properties.limits;
 	}
 	auto HasFeatures(const VkPhysicalDeviceFeatures&) const -> b8;
+	auto HasLimits(const VkPhysicalDeviceLimits&) const -> b8;
 private:
 	PhysicalDevice() = default;
 	VkPhysicalDevice _device;

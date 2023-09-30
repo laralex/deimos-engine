@@ -46,62 +46,18 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
     std::cout << "Created VkInstance: " << vkInstance
               << " VkSurfaceKHR: " << vkSurface << std::endl;
 
-    VkPhysicalDeviceFeatures requiredDeviceFeatures;
-    requiredDeviceFeatures.robustBufferAccess                         = false;
-    requiredDeviceFeatures.fullDrawIndexUint32                        = false;
+    VkPhysicalDeviceFeatures requiredDeviceFeatures = {};
     requiredDeviceFeatures.imageCubeArray                             = true;
-    requiredDeviceFeatures.independentBlend                           = false;
-    requiredDeviceFeatures.geometryShader                             = false;
-    requiredDeviceFeatures.tessellationShader                         = false;
+    requiredDeviceFeatures.geometryShader                             = false; // TODO: maybe
+    requiredDeviceFeatures.tessellationShader                         = false; // TODO: maybe
     requiredDeviceFeatures.sampleRateShading                          = false; // TODO: maybe
     requiredDeviceFeatures.dualSrcBlend                               = false; // TODO: maybe
     requiredDeviceFeatures.logicOp                                    = true;
-    requiredDeviceFeatures.multiDrawIndirect                          = false;
-    requiredDeviceFeatures.drawIndirectFirstInstance                  = false;
-    requiredDeviceFeatures.depthClamp                                 = false;
-    requiredDeviceFeatures.depthBiasClamp                             = false;
     requiredDeviceFeatures.fillModeNonSolid                           = true;
-    requiredDeviceFeatures.depthBounds                                = false;
-    requiredDeviceFeatures.wideLines                                  = false;
-    requiredDeviceFeatures.largePoints                                = false;
-    requiredDeviceFeatures.alphaToOne                                 = false;
-    requiredDeviceFeatures.multiViewport                              = false;
     requiredDeviceFeatures.samplerAnisotropy                          = true;
-    requiredDeviceFeatures.textureCompressionETC2                     = false;
-    requiredDeviceFeatures.textureCompressionASTC_LDR                 = false;
-    requiredDeviceFeatures.textureCompressionBC                       = false;
-    requiredDeviceFeatures.occlusionQueryPrecise                      = false;
-    requiredDeviceFeatures.pipelineStatisticsQuery                    = false;
-    requiredDeviceFeatures.vertexPipelineStoresAndAtomics             = false;
-    requiredDeviceFeatures.fragmentStoresAndAtomics                   = false;
-    requiredDeviceFeatures.shaderTessellationAndGeometryPointSize     = false;
-    requiredDeviceFeatures.shaderImageGatherExtended                  = false;
-    requiredDeviceFeatures.shaderStorageImageExtendedFormats          = false;
-    requiredDeviceFeatures.shaderStorageImageMultisample              = false;
-    requiredDeviceFeatures.shaderStorageImageReadWithoutFormat        = false;
-    requiredDeviceFeatures.shaderStorageImageWriteWithoutFormat       = false;
-    requiredDeviceFeatures.shaderUniformBufferArrayDynamicIndexing    = false;
-    requiredDeviceFeatures.shaderSampledImageArrayDynamicIndexing     = false;
-    requiredDeviceFeatures.shaderStorageBufferArrayDynamicIndexing    = false;
-    requiredDeviceFeatures.shaderStorageImageArrayDynamicIndexing     = false;
-    requiredDeviceFeatures.shaderClipDistance                         = false;
-    requiredDeviceFeatures.shaderCullDistance                         = false;
-    requiredDeviceFeatures.shaderFloat64                              = false;
-    requiredDeviceFeatures.shaderInt64                                = false;
-    requiredDeviceFeatures.shaderInt16                                = false;
-    requiredDeviceFeatures.shaderResourceResidency                    = false;
-    requiredDeviceFeatures.shaderResourceMinLod                       = false;
-    requiredDeviceFeatures.sparseBinding                              = false;
-    requiredDeviceFeatures.sparseResidencyBuffer                      = false;
-    requiredDeviceFeatures.sparseResidencyImage2D                     = false;
-    requiredDeviceFeatures.sparseResidencyImage3D                     = false;
-    requiredDeviceFeatures.sparseResidency2Samples                    = false;
-    requiredDeviceFeatures.sparseResidency4Samples                    = false;
-    requiredDeviceFeatures.sparseResidency8Samples                    = false;
-    requiredDeviceFeatures.sparseResidency16Samples                   = false;
-    requiredDeviceFeatures.sparseResidencyAliased                     = false;
-    requiredDeviceFeatures.variableMultisampleRate                    = false;
-    requiredDeviceFeatures.inheritedQueries                           = false;
+    VkPhysicalDeviceLimits requiredDeviceLimits = {};
+    requiredDeviceLimits.maxImageDimension2D = 1024;
+    requiredDeviceLimits.maxVertexInputAttributes = 4;
     auto maybeDevices = dei::render::PhysicalDevice::QueryAll(
         destinationState.VulkanInstance);
     assert(maybeDevices);
@@ -110,6 +66,8 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
         dei::render::PrintPhysicalDevice(device);
         printf(" - Supports features : %d\n",
             device.HasFeatures(requiredDeviceFeatures));
+        printf(" - Supports limits : %d\n",
+            device.HasLimits(requiredDeviceLimits));
     }
 
     // TODO: add multi device rendering
