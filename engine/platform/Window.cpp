@@ -24,11 +24,6 @@ struct WindowState {
     platform::input::MouseEntersWindowCallback MouseEntersWindowCallback;
 };
 
-auto IsKeyPressed(GLFWwindow* window, int key, int keyAlias) -> b8 {
-    return glfwGetKey(window, key) == GLFW_PRESS
-        || glfwGetKey(window, keyAlias) == GLFW_PRESS;
-}
-
 inline auto GetWindowState(const dei::platform::WindowHandle& window) -> WindowState* {
     return static_cast<WindowState*>(glfwGetWindowUserPointer(window.get()));
 }
@@ -37,9 +32,14 @@ inline auto GetWindowState(GLFWwindow* window) -> WindowState* {
     return static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 }
 
+inline auto SetGlfwVersionHint(u32 versionMajor, u32 versionMinor) -> void {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, static_cast<int>(versionMajor));
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, static_cast<int>(versionMinor));
+}
+
 auto KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
     using platform::input::KeyCode;
-    auto* windowState = GetWindowState(window);;
+    auto* windowState = GetWindowState(window);
     printf("@ %d %d", key, scancode);
     auto keyCode = static_cast<KeyCode>(key);
     auto keyName = glfwGetKeyName(key, scancode);
@@ -97,6 +97,7 @@ auto MouseScrollCallback(GLFWwindow* window, double directionX, double direction
 }
 
 auto MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    (void)mods;
     auto* windowState = GetWindowState(window);
     if (windowState->MouseButtonCallback == nullptr) {
         return;
@@ -154,14 +155,14 @@ namespace dei::platform {
 auto CreateWindowSystem(void (*errorCallback)(int, const char*)) -> WindowSystemHandle {
     glfwInit();
     glfwSetErrorCallback(errorCallback);
-#if NDEBUG == 0
+#if defined(NDEBUG)
     printf("GLFW version: %s\n", glfwGetVersionString());
 #endif
     return WindowSystemHandle(
         nullptr, [](std::nullptr_t){ glfwTerminate(); });
 }
 
-auto PollWindowEvents(const WindowSystemHandle& window) -> void {
+auto PollWindowEvents(const WindowSystemHandle&) -> void {
     glfwPollEvents();
 }
 
@@ -170,11 +171,11 @@ auto GetKeyName(const WindowSystemHandle&, input::KeyCode key) -> const char* {
 }
 
 auto GetClipboardUtf8(const WindowSystemHandle&) -> const char * {
-    return glfwGetClipboardString(NULL);
+    return glfwGetClipboardString(nullptr);
 }
 
 auto SetClipboardUtf8(const WindowSystemHandle&, const char* textUtff8) -> void {
-    glfwSetClipboardString(NULL, textUtff8);
+    glfwSetClipboardString(nullptr, textUtff8);
 }
 
 auto SetVerticalSync(const WindowSystemHandle&, b8 enableVerticalSync) -> void {
@@ -193,7 +194,7 @@ auto WindowDestroyer::operator()(GLFWwindow* window) -> void {
 }
 
 auto WindowBuilder::WithSize(u32 width, u32 height) -> WindowBuilder& {
-    _args.Size = { (int)width, (int)height };
+    _args.Size = { static_cast<int>(width), static_cast<int>(height) };
     return *this;
 }
 
@@ -471,47 +472,37 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
+            SetGlfwVersionHint(args.VersionMajor, args.VersionMinor);
             break;
         case GraphicsApi::OPENGL:
             if (args.VersionMajor < 3
-                || args.VersionMajor == 3 && args.VersionMinor > 3
-                || args.VersionMajor == 4 && args.VersionMinor > 6) {
+                || (args.VersionMajor == 3 && args.VersionMinor > 3)
+                || (args.VersionMajor == 4 && args.VersionMinor > 6)) {
                 printf("Unsupported OpenGL version %d.%d", args.VersionMajor, args.VersionMinor);
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
+            SetGlfwVersionHint(args.VersionMajor, args.VersionMinor);
             windowState->HasContextObject = true;
             break;
         case GraphicsApi::OPENGLES:
             // FIXME: can't launch on laptop
             if (args.VersionMajor < 3
-                || args.VersionMajor == 3 && args.VersionMinor > 3) {
+                || (args.VersionMajor == 3 && args.VersionMinor > 3)) {
                 printf("Unsupported OpenGLES version %d.%d", args.VersionMajor, args.VersionMinor);
                 std::exit(1);
             }
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, args.VersionMajor);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, args.VersionMinor);
+            SetGlfwVersionHint(args.VersionMajor, args.VersionMinor);
             windowState->HasContextObject = true;
-            break;
-        default:
-            printf("Unsupported GraphicsApi value=%d (%s)\n",
-                args.GraphicsApi,
-                GraphicsApiToStr(args.GraphicsApi));
-            std::exit(1);
-            // TODO: assert / panic
             break;
     }
     glfwWindowHint(GLFW_VISIBLE, args.IsVisible);
     // TODO: maybe more explicit selection of refresh rate
     if (args.Monitor != nullptr && args.UseMonitorSize) {
         glfwWindowHint(GLFW_REFRESH_RATE, primaryVideoMode->refreshRate);
-        args.Size.x = primaryVideoMode->width;
-        args.Size.y = primaryVideoMode->height;
+        args.Size.x = static_cast<u32>(primaryVideoMode->width);
+        args.Size.y = static_cast<u32>(primaryVideoMode->height);
     }
     // FIXME: investigate why it still steals focus when passing FALSE
     glfwWindowHint(GLFW_FOCUSED, args.IsFocused);
@@ -523,14 +514,14 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwWindowHint(GLFW_CENTER_CURSOR, args.IsCursorCentered);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, args.IsScaleToMonitor);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, args.IsTransparentFramebuffer);
-    glfwWindowHint(GLFW_RED_BITS, args.BitDepthRed);
-    glfwWindowHint(GLFW_GREEN_BITS, args.BitDepthGreen);
-    glfwWindowHint(GLFW_BLUE_BITS, args.BitDepthBlue);
-    glfwWindowHint(GLFW_ALPHA_BITS, args.BitDepthAlpha);
-    glfwWindowHint(GLFW_DEPTH_BITS, args.BitDepthDepth);
-    glfwWindowHint(GLFW_STENCIL_BITS, args.BitDepthStencil);
+    glfwWindowHint(GLFW_RED_BITS, static_cast<int>(args.BitDepthRed));
+    glfwWindowHint(GLFW_GREEN_BITS, static_cast<int>(args.BitDepthGreen));
+    glfwWindowHint(GLFW_BLUE_BITS, static_cast<int>(args.BitDepthBlue));
+    glfwWindowHint(GLFW_ALPHA_BITS, static_cast<int>(args.BitDepthAlpha));
+    glfwWindowHint(GLFW_DEPTH_BITS, static_cast<int>(args.BitDepthDepth));
+    glfwWindowHint(GLFW_STENCIL_BITS, static_cast<int>(args.BitDepthStencil));
     glfwWindowHint(GLFW_STEREO, args.IsStereoscopicRendering);
-    glfwWindowHint(GLFW_SAMPLES, args.MultisamplingNumSamples);
+    glfwWindowHint(GLFW_SAMPLES, static_cast<int>(args.MultisamplingNumSamples));
     glfwWindowHint(GLFW_SRGB_CAPABLE, args.IsSrgbCapable);
     glfwWindowHint(GLFW_DOUBLEBUFFER, args.IsDoubleBuffered);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, static_cast<int>(args.ContextCreationApi));
@@ -545,7 +536,9 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     // x11: GLFW_X11_CLASS_NAME, GLFW_X11_INSTANCE_NAME
 
     auto* window = glfwCreateWindow(
-        args.Size.x, args.Size.y, args.TitleUtf8, args.Monitor, nullptr);
+        static_cast<int>(args.Size.x),
+        static_cast<int>(args.Size.y), 
+        args.TitleUtf8, args.Monitor, nullptr);
     glfwSetWindowUserPointer(window, windowState);
     glfwSetKeyCallback(window, &::KeyboardCallback);
     glfwSetCharCallback(window, &::TextInputCallback);
@@ -558,16 +551,18 @@ auto CreateWindow(const WindowSystemHandle& windowSystem, CreateWindowArgs&& arg
     glfwSetWindowCloseCallback(window, &::WindowClosingCallback);
     glfwSetWindowFocusCallback(window, &::WindowFocusedCallback);
     glfwSetWindowSizeLimits(window,
-        args.WidthMin > 0 ? args.WidthMin : GLFW_DONT_CARE,
-        args.HeightMin > 0 ? args.HeightMin : GLFW_DONT_CARE,
-        args.WidthMax < (1 << 30) ? args.WidthMax : GLFW_DONT_CARE,
-        args.HeightMax < (1 << 30) ? args.HeightMax : GLFW_DONT_CARE);
+        args.WidthMin > 0 ? static_cast<int>(args.WidthMin) : GLFW_DONT_CARE,
+        args.HeightMin > 0 ? static_cast<int>(args.HeightMin) : GLFW_DONT_CARE,
+        args.WidthMax < (1 << 30) ? static_cast<int>(args.WidthMax) : GLFW_DONT_CARE,
+        args.HeightMax < (1 << 30) ? static_cast<int>(args.HeightMax) : GLFW_DONT_CARE);
     if (args.UseAspectRatio) {
         if (args.UseSizeAsAspectRatio) {
             args.AspectNumerator = args.Size.x;
             args.AspectDenominator = args.Size.y;
         }
-        glfwSetWindowAspectRatio(window, args.AspectNumerator, args.AspectDenominator);
+        glfwSetWindowAspectRatio(window,
+            static_cast<int>(args.AspectNumerator),
+            static_cast<int>(args.AspectDenominator));
     }
     if (args.TryRawMouseMotion && glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -669,7 +664,7 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
         return std::nullopt;
     }
     VkSurfaceKHR surface;
-    VkResult status = glfwCreateWindowSurface(vkInstance, window.get(), NULL, &surface);
+    VkResult status = glfwCreateWindowSurface(vkInstance, window.get(), nullptr, &surface);
     if (status != VK_SUCCESS) {
         return std::nullopt;
     }
@@ -679,6 +674,7 @@ auto WindowInitializeVulkanBackend(const WindowHandle& window, VkInstance vkInst
 auto WindowVulkanGetRequiredExtensionsCount(const WindowHandle&) -> u32 {
     u32 glfwExtensionCount;
     auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    (void)glfwExtensions;
     return glfwExtensionCount;
 }
 
@@ -695,27 +691,30 @@ auto WindowBindToThread(const WindowHandle& window) -> void {
     glfwMakeContextCurrent(window.get());
 }
 
-auto WindowUnbindFromThread(const WindowHandle& window) -> void {
-    glfwMakeContextCurrent(NULL);
+auto WindowUnbindFromThread(const WindowHandle&) -> void {
+    glfwMakeContextCurrent(nullptr);
 }
 
 auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor) -> void {
     auto videoMode = glfwGetVideoMode(monitor);
     WindowToFullscreen(window, monitor,
-        {videoMode->width, videoMode->height}, videoMode->refreshRate);
+        {videoMode->width, videoMode->height}, 
+        static_cast<u32>(videoMode->refreshRate));
 }
 
 // TODO: make more obvious selection of refresh rate
 auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, vec2u size) -> void {
     WindowToFullscreen(window, monitor,
-        size, GLFW_DONT_CARE);
+        size, static_cast<u32>(GLFW_DONT_CARE));
 }
 auto WindowToFullscreen(const WindowHandle& window, const MonitorHandle& monitor, vec2u size, u32 refreshRate) -> void {
     if (monitor == nullptr) {
         return;
     }
     glfwSetWindowMonitor(window.get(), monitor, 0, 0,
-        size.x, size.y, refreshRate);
+        static_cast<int>(size.x),
+        static_cast<int>(size.y),
+        static_cast<int>(refreshRate));
 }
 
 auto WindowToWindowed(const WindowHandle& window) -> void {

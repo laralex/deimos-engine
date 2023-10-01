@@ -63,10 +63,10 @@ struct CreateWindowArgs {
    GraphicsApi GraphicsApi;
    u32 VersionMajor = 0, VersionMinor = 0, VersionRevision = 0;
    ContextCreationApi ContextCreationApi = ContextCreationApi::NATIVE;
-   vec2i Size = { 800, 600 };
+   vec2u Size = { 800, 600 };
    b8 UseMonitorSize = false;
    u32 WidthMin = 0, HeightMin = 0;
-   u32 WidthMax = 1 << 31, HeightMax = 1 << 31;
+   u32 WidthMax = 1u << 31u, HeightMax = 1u << 31u;
    b8 UseAspectRatio = false;
    b8 UseSizeAsAspectRatio = false;
    u32 AspectNumerator = 1;
@@ -108,7 +108,7 @@ struct CreateWindowArgs {
 };
 
 struct WindowBuilder {
-   WindowBuilder() {};
+   WindowBuilder() {}
    WindowBuilder(const WindowBuilder&) = delete;
    WindowBuilder(WindowBuilder&&) = default;
    auto operator=(WindowBuilder&&) -> WindowBuilder& = default;

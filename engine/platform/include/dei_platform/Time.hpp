@@ -4,9 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <stdint.h>
 
-#if DEI_WINDOWS
+#if defined(DEI_WINDOWS)
 #include <windows.h>
-#elif DEI_LINUX
+#elif defined(DEI_LINUX)
 #include <unistd.h>
 #endif
 
@@ -52,7 +52,7 @@ inline auto GetClockFrequencyHertz() -> uint64_t {
     return freqHz;
 }
 
-#if DEI_WINDOWS
+#if defined(DEI_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 
 struct SystemClock {

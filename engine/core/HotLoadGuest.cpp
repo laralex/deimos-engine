@@ -2,7 +2,10 @@
 #include "dei/Entry.hpp"
 #include "dei/Camera.hpp"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <cr.h>
+#pragma clang diagnostic pop
 
 #include <iostream>
 #include <functional>
@@ -30,6 +33,7 @@ inline auto OnHotLoad(cr_plugin *ctx) -> int {
 }
 
 inline auto OnUpdate(cr_plugin *ctx) -> int {
+    (void)ctx;
     return dei::EngineTick(state->EngineState) == false;
 }
 

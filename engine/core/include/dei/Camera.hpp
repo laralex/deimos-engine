@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dei/Prelude.hpp"
+#include "dei_platform/TypesMat.hpp"
 
 namespace dei {
 

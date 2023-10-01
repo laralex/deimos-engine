@@ -1,7 +1,6 @@
 #include "dei/Vulkan.hpp"
 
-#define DEI_FIELD_EQ(LHS, RHS, FIELD) (##LHS.##FIELD == ##RHS.##FIELD)
-#define DEI_FIELD_SATISFIED(REQ,ACTUAL,FIELD) (REQ.FIELD == ACTUAL.FIELD || REQ.FIELD == 0)
+#define DEI_IS_BOOL_SATISFIED(REQ,ACTUAL,FIELD) (REQ.FIELD == ACTUAL.FIELD || REQ.FIELD == 0)
 
 namespace {
 
@@ -183,61 +182,61 @@ b8 VerifyVkPhysicalLimits(const VkPhysicalDeviceLimits& required, const VkPhysic
 }
 
 b8 VerifyVkPhysicalFeatures(const VkPhysicalDeviceFeatures& required, const VkPhysicalDeviceFeatures& actual) {
-   return DEI_FIELD_SATISFIED(required, actual, robustBufferAccess) &&
-         DEI_FIELD_SATISFIED(required, actual, fullDrawIndexUint32) &&
-         DEI_FIELD_SATISFIED(required, actual, imageCubeArray) &&
-         DEI_FIELD_SATISFIED(required, actual, independentBlend) &&
-         DEI_FIELD_SATISFIED(required, actual, geometryShader) &&
-         DEI_FIELD_SATISFIED(required, actual, tessellationShader) &&
-         DEI_FIELD_SATISFIED(required, actual, sampleRateShading) &&
-         DEI_FIELD_SATISFIED(required, actual, dualSrcBlend) &&
-         DEI_FIELD_SATISFIED(required, actual, logicOp) &&
-         DEI_FIELD_SATISFIED(required, actual, multiDrawIndirect) &&
-         DEI_FIELD_SATISFIED(required, actual, drawIndirectFirstInstance) &&
-         DEI_FIELD_SATISFIED(required, actual, depthClamp) &&
-         DEI_FIELD_SATISFIED(required, actual, depthBiasClamp) &&
-         DEI_FIELD_SATISFIED(required, actual, fillModeNonSolid) &&
-         DEI_FIELD_SATISFIED(required, actual, depthBounds) &&
-         DEI_FIELD_SATISFIED(required, actual, wideLines) &&
-         DEI_FIELD_SATISFIED(required, actual, largePoints) &&
-         DEI_FIELD_SATISFIED(required, actual, alphaToOne) &&
-         DEI_FIELD_SATISFIED(required, actual, multiViewport) &&
-         DEI_FIELD_SATISFIED(required, actual, samplerAnisotropy) &&
-         DEI_FIELD_SATISFIED(required, actual, textureCompressionETC2) &&
-         DEI_FIELD_SATISFIED(required, actual, textureCompressionASTC_LDR) &&
-         DEI_FIELD_SATISFIED(required, actual, textureCompressionBC) &&
-         DEI_FIELD_SATISFIED(required, actual, occlusionQueryPrecise) &&
-         DEI_FIELD_SATISFIED(required, actual, pipelineStatisticsQuery) &&
-         DEI_FIELD_SATISFIED(required, actual, vertexPipelineStoresAndAtomics) &&
-         DEI_FIELD_SATISFIED(required, actual, fragmentStoresAndAtomics) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderTessellationAndGeometryPointSize) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderImageGatherExtended) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageExtendedFormats) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageMultisample) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageReadWithoutFormat) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageWriteWithoutFormat) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderUniformBufferArrayDynamicIndexing) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderSampledImageArrayDynamicIndexing) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageBufferArrayDynamicIndexing) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderStorageImageArrayDynamicIndexing) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderClipDistance) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderCullDistance) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderFloat64) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderInt64) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderInt16) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderResourceResidency) &&
-         DEI_FIELD_SATISFIED(required, actual, shaderResourceMinLod) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseBinding) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidencyBuffer) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidencyImage2D) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidencyImage3D) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidency2Samples) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidency4Samples) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidency8Samples) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidency16Samples) &&
-         DEI_FIELD_SATISFIED(required, actual, sparseResidencyAliased) &&
-         DEI_FIELD_SATISFIED(required, actual, variableMultisampleRate) &&
-         DEI_FIELD_SATISFIED(required, actual, inheritedQueries);
+   return DEI_IS_BOOL_SATISFIED(required, actual, robustBufferAccess) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, fullDrawIndexUint32) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, imageCubeArray) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, independentBlend) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, geometryShader) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, tessellationShader) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sampleRateShading) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, dualSrcBlend) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, logicOp) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, multiDrawIndirect) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, drawIndirectFirstInstance) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, depthClamp) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, depthBiasClamp) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, fillModeNonSolid) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, depthBounds) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, wideLines) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, largePoints) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, alphaToOne) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, multiViewport) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, samplerAnisotropy) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, textureCompressionETC2) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, textureCompressionASTC_LDR) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, textureCompressionBC) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, occlusionQueryPrecise) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, pipelineStatisticsQuery) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, vertexPipelineStoresAndAtomics) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, fragmentStoresAndAtomics) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderTessellationAndGeometryPointSize) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderImageGatherExtended) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageImageExtendedFormats) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageImageMultisample) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageImageReadWithoutFormat) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageImageWriteWithoutFormat) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderUniformBufferArrayDynamicIndexing) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderSampledImageArrayDynamicIndexing) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageBufferArrayDynamicIndexing) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderStorageImageArrayDynamicIndexing) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderClipDistance) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderCullDistance) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderFloat64) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderInt64) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderInt16) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderResourceResidency) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, shaderResourceMinLod) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseBinding) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidencyBuffer) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidencyImage2D) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidencyImage3D) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidency2Samples) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidency4Samples) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidency8Samples) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidency16Samples) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, sparseResidencyAliased) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, variableMultisampleRate) &&
+         DEI_IS_BOOL_SATISFIED(required, actual, inheritedQueries);
 }
 
 auto ParseSampleCountFlags(VkSampleCountFlags flags) -> VkSampleCountFlagBits {
@@ -286,7 +285,7 @@ auto QueryAndFilterPhysicalDevice(
       }
       satisfiedDevices.emplace_back(std::move(device));
    }
-   return satisfiedDevices;
+   return std::move(satisfiedDevices);
 }
 
 } // namespace ::
@@ -294,7 +293,8 @@ auto QueryAndFilterPhysicalDevice(
 namespace dei::render {
 
 auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtensionsCount) -> VkInstance {
-   auto appInfo = VkApplicationInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+   auto appInfo = VkApplicationInfo{};
+   appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
    appInfo.pNext = nullptr;
    appInfo.pApplicationName = "Deimos App";
    appInfo.pEngineName = "Deimos Engine";
@@ -302,7 +302,8 @@ auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtension
    appInfo.applicationVersion = 1;
    appInfo.apiVersion = VK_MAKE_API_VERSION(0,1,3,0);
 
-   auto info = VkInstanceCreateInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+   auto info = VkInstanceCreateInfo{};
+   info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
    info.pNext = nullptr;
    info.pApplicationInfo = &appInfo;
    info.enabledExtensionCount = requiredExtensionsCount;
@@ -313,7 +314,7 @@ auto CreateVulkanInstance(const char** requiredExtensions, u32 requiredExtension
 
    auto instance = VkInstance{};
    auto result = vkCreateInstance(&info, nullptr, &instance);
-
+   (void)result;
    return instance;
 }
 
@@ -341,7 +342,7 @@ auto PhysicalDevice::QueryAll(VkInstance instance) -> std::optional<std::vector<
          std::move(deviceProperties));
       physicalDevices.emplace_back(std::move(device));
    }
-   return physicalDevices;
+   return std::move(physicalDevices);
 }
 
 auto PhysicalDevice::QueryAll(
@@ -410,14 +411,16 @@ auto PrintPhysicalDevice(const PhysicalDevice& device) -> void {
    printf(" - Max Vertex Attributes: %d\n", properties.limits.maxVertexInputAttributes);
 
    // TODO: can simply convert to int
-   u32 maxFramebufferSamples = 1;
+   u32 maxFramebufferSamples = {};
    switch (device.GetMaxFramebufferSamples()) {
+      case VK_SAMPLE_COUNT_1_BIT: maxFramebufferSamples = 1; break;
       case VK_SAMPLE_COUNT_2_BIT: maxFramebufferSamples = 2; break;
       case VK_SAMPLE_COUNT_4_BIT: maxFramebufferSamples = 4; break;
       case VK_SAMPLE_COUNT_8_BIT: maxFramebufferSamples = 8; break;
       case VK_SAMPLE_COUNT_16_BIT: maxFramebufferSamples = 16; break;
       case VK_SAMPLE_COUNT_32_BIT: maxFramebufferSamples = 32; break;
       case VK_SAMPLE_COUNT_64_BIT: maxFramebufferSamples = 64; break;
+      case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM: maxFramebufferSamples = 0; break;
    }
    printf(" - Max Framebuffer Samples : %d\n", maxFramebufferSamples);
 }

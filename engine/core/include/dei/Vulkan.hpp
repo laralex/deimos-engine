@@ -40,7 +40,6 @@ public:
 		const VkPhysicalDeviceLimits& requiredLimits)
 		-> std::optional<std::vector<PhysicalDevice>>;
 	PhysicalDevice(PhysicalDevice&&) = default;
-	PhysicalDevice& operator=(PhysicalDevice&&) = default;
 	auto GetVendorName() const -> const char*;
 	auto GetDeviceTypeName() const -> const char*;
 	auto GetMaxFramebufferSamples(bool ofColor=true, bool ofDepth=false, bool ofStencil=false) const -> VkSampleCountFlagBits;

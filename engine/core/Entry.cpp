@@ -81,6 +81,7 @@ b8 EngineColdStartup(EngineState& destinationState, const EngineDependencies& de
 
 b8 EngineHotStartup(EngineState& engineState) {
     ::RunSandboxLogic();
+    (void)engineState;
     return true;
 }
 
@@ -90,6 +91,7 @@ b8 EngineTick(EngineState& engineState) {
 }
 
 b8 EngineReleaseResources(EngineState& engineState) {
+    (void)engineState;
    return true;
 }
 

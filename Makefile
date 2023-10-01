@@ -13,7 +13,26 @@ EDITOR_SRC_ROOT ?= ./editor
 EDITOR_OBJ_ROOT ?= $(BUILD_DIR)/$(EDITOR_SRC_ROOT)
 OBJ_EXTENSION ?= object
 
-CFLAGS = $(if $(DEBUG),-O0 -g, -O2) -std=c++17
+# NOTE: -Wpadded reports bloating of structs with padding !!
+CFLAGS = $(if $(DEBUG),-O0 -g, -O2) -std=c++17 -fno-exceptions -fno-rtti -Weverything -Wno-switch-enum \
+	-Wno-c++98-compat-pedantic \
+	-Wno-c++98-compat \
+	-Wno-c++98-c++11-compat-pedantic \
+	-Wno-padded \
+	-Wno-newline-eof \
+	-Wno-missing-prototypes \
+#	-Wno-signed-enum-bitfield \
+	-Wno-deprecated-register \
+	-Wno-nested-anon-types \
+	-Wno-gnu-anonymous-struct \
+	-Wno-documentation \
+	-Wno-documentation-unknown-command \
+	-Wno-weak-vtables \
+	-Wno-unused-const-variable \
+	-Wno-format-nonliteral \
+	-Wno-global-constructors \
+	-Wno-exit-time-destructors \
+	-Wno-error=padded
 
 LDFLAGS_EDITOR = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi -L$(BUILD_DIR)/$(ENGINE_PLTFM_OUTNAME)
 INCLUDES_EDITOR = -I./vendor/glm -I./vendor/cr -I$(ENGINE_PLTFM_SRC_ROOT)/include -I$(ENGINE_CORE_SRC_ROOT)/include

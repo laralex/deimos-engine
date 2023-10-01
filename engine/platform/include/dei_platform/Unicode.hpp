@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dei_platform/TypesFwd.hpp"
+
 #include <iostream>
 #include <locale>
 #include <string>
@@ -30,10 +32,10 @@ struct ConvertUtf32Utf8
 
 struct AppendToUtf8
 {
-  auto operator()(std::string& dest, int32_t codepoint) -> b8
+  auto operator()(std::string& dest, u32 codepoint) -> b8
   {
-    char32_t source = codepoint;
-    char32_t const* sourceNext = &source;
+    auto source = static_cast<char32_t>(codepoint);
+    auto const* sourceNext = &source;
     char buffer[4];
     char* destNext = buffer;
     std::mbstate_t state{};
@@ -44,7 +46,10 @@ struct AppendToUtf8
     if(convOut != std::codecvt_base::result::ok) {
         return false;
     }
-    dest.append(buffer, destNext - buffer);
+    if (destNext <= buffer) {
+      return false;
+    }
+    dest.append(buffer, static_cast<size_t>(destNext - buffer));
     return true;
   }
   deletable_facet<std::codecvt<char32_t, char, std::mbstate_t>> conv;

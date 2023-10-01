@@ -6,15 +6,14 @@
 
 namespace dei::platform {
 
-auto SetSubstringInplace(std::string& destination, const char* source, u32 offset, u32 size, char padValue) -> void {
+auto SetSubstringInplace(std::string& destination, const char* source, size_t offset, size_t size, char padValue) -> void {
     if (offset >= destination.size()) {
         return;
     }
     auto begin = destination.data() + offset;
-    size = std::min((size_t)size, destination.size() - offset);
-    auto end = begin + size;
-    auto sourceSize = 0;
-    for (auto i = 0; i < size; ++i) {
+    size = std::min(size, destination.size() - offset);
+    size_t sourceSize = 0;
+    for (size_t i = 0; i < size; ++i) {
         if (source[i] == '\0') {
             sourceSize = i;
             break;

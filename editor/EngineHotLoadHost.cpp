@@ -10,7 +10,10 @@ using namespace dei::platform::input;
 
 #define CR_HOST CR_UNSAFE // required in the host only and before including cr.h
 #define CR_DEBUG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <cr.h>
+#pragma clang diagnostic pop
 
 #include <cassert>
 #include <string>
@@ -22,6 +25,7 @@ struct EngineHotReloadState {
 };
 
 auto OnTextInput(const std::string& currentInputUtf8, u32 latestCodepoint) {
+    (void)latestCodepoint;
     std::cout << currentInputUtf8 << '\n';
 }
 
@@ -35,11 +39,13 @@ auto OnWindowMoved(int leftUpCornerX, int leftUpCornerY) {
 }
 
 auto OnMouseMoved(double windowX, double windowY) {
-    //std::cout << '(' << windowX << ',' << windowY << ")\n";
+    (void)windowX;
+    (void)windowY;
 }
 
 auto OnMouseScrolled(double directionX, double directionY) {
-    //std::cout << '[' << directionX << ',' << directionY << "]\n";
+    (void)directionX;
+    (void)directionY;
 }
 
 auto OnMouseEnteredWindow(b8 entered) {
@@ -58,7 +64,7 @@ auto OnKeyboardDefault(KeyCode key, KeyState state, const char* keyName) -> void
     }
 }
 
-auto OnKeyboardR(KeyCode key, KeyState state, const char* keyName) -> void {
+auto OnKeyboardR(KeyCode, KeyState state, const char*) -> void {
     if (state == KeyState::PRESS) {
         printf("RRRRRRRRRRRRRRRRRRRRRRR\n");
     }
@@ -73,7 +79,7 @@ auto OnWindowFocused(b8 isFocused) {
 }
 
 auto OnWindowError(int code, const char* description) {
-    printf("Error GLFW: %s\n", description);
+    printf("Error GLFW %d: %s\n", code, description);
 }
 
 // args:
@@ -83,7 +89,7 @@ auto OnWindowError(int code, const char* description) {
 auto main(int argc, char *argv[]) -> int {
     // parse args
     assert(argc >= 3);
-    auto hotReloadFrequency = (argc >= 4 ? std::stoi(argv[3]) : 400);
+    u32 hotReloadFrequency = static_cast<u32>(argc >= 4 ? std::stoul(argv[3]) : 400UL);
     constexpr double FPS_CAP = 300.0;
     constexpr double TICK_CAP_SECONDS = 1.0 / FPS_CAP;
 
@@ -162,7 +168,7 @@ auto main(int argc, char *argv[]) -> int {
     
 
     dei::platform::WindowSetKeyMap(window, {
-        {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+        {{KeyCode::ENTER, MODIFIERS_ALT}, [&](KeyCode, KeyState state, const char*) {
             using dei::platform::FullscreenMode;
             if (state != KeyState::PRESS) return;
             auto nextFullscreenMode = static_cast<FullscreenMode>(
@@ -170,24 +176,24 @@ auto main(int argc, char *argv[]) -> int {
             dei::platform::WindowSetFullscreenMode(window, nextFullscreenMode, primaryMonitor);
             windowFullscreenMode = nextFullscreenMode;
         }},
-        {{KeyCode::KEY_P, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+        {{KeyCode::KEY_P, MODIFIERS_ALT}, [&](KeyCode, KeyState state, const char*) {
             if (state != KeyState::PRESS) return;
             dei::platform::WindowSetVisible(window,
                 !dei::platform::WindowIsVisible(window));
         }},
-        {{KeyCode::KEY_O, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+        {{KeyCode::KEY_O, MODIFIERS_ALT}, [&](KeyCode, KeyState state, const char*) {
             if (state != KeyState::PRESS) return;
             float currentOpacity = dei::platform::WindowGetOpacity(window);
             dei::platform::WindowSetOpacity(window,
                 currentOpacity >= 1.0f ? 0.5f : 1.0f );
         }},
-        {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+        {{KeyCode::KEY_0, MODIFIERS_ALT}, [&](KeyCode, KeyState state, const char*) {
             static b8 isVerticalSyncEnabled = false;
             if (state != KeyState::PRESS) return;
             isVerticalSyncEnabled ^= 1;
             dei::platform::SetVerticalSync(windowSystem, isVerticalSyncEnabled);
         }},
-        {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode key, KeyState state, const char* keyName) {
+        {{KeyCode::KEY_C, MODIFIERS_ALT}, [&](KeyCode, KeyState state, const char*) {
             using dei::platform::input::CursorMode;
             if (state != KeyState::PRESS) return;
             b8 shouldEnableCursor = dei::platform::WindowGetCursorMode(window) == CursorMode::DISABLED;
@@ -198,15 +204,15 @@ auto main(int argc, char *argv[]) -> int {
         {{KeyCode::KEY_R, MODIFIERS_CTRL_SHIFT}, &OnKeyboardR},
         {{KeyCode::ANYTHING, MODIFIERS_NONE}, &OnKeyboardDefault},
         // TODO: doesn't work with BACKSPACE (-1 code)
-        {{KeyCode::BACKSPACE, MODIFIERS_CTRL}, [&](KeyCode key, KeyState state, const char* keyName){
+        {{KeyCode::BACKSPACE, MODIFIERS_CTRL}, [&](KeyCode, KeyState state, const char*){
             if (state != KeyState::PRESS) return;
             dei::platform::WindowClearInput(window);
         }},
-        {{KeyCode::BACKSPACE, MODIFIERS_NONE}, [&](KeyCode key, KeyState state, const char* keyName){
+        {{KeyCode::BACKSPACE, MODIFIERS_NONE}, [&](KeyCode, KeyState state, const char*){
             if (state != KeyState::PRESS) return;
             dei::platform::WindowUndoInput(window);
         }},
-        {{KeyCode::INSERT, MODIFIERS_SHIFT}, [&](KeyCode key, KeyState state, const char* keyName){
+        {{KeyCode::INSERT, MODIFIERS_SHIFT}, [&](KeyCode, KeyState state, const char*){
             if (state != KeyState::PRESS) return;
             auto* clipboard = dei::platform::GetClipboardUtf8(windowSystem);
             dei::platform::WindowAppendInputUtf8(window, clipboard);
@@ -237,8 +243,8 @@ auto main(int argc, char *argv[]) -> int {
     printf("Hot-loadable library: %s\n", engineLibPath.c_str());
 
     // app loop
-    auto windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
-    auto updateWindowTitleEvery = 100;
+    b8 windowClosing{false}, engineClosing{false}, hotReloadCrashing{false};
+    u32 updateWindowTitleEvery = 100;
     auto beginTimeSeconds = dei::platform::GetTimeSec();
     do {
         dei::platform::PollWindowEvents(windowSystem);
